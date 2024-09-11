@@ -64,6 +64,27 @@ def calculate_gini_for_posts(df, outreach_df, count_lurcker=False):
     return pd.DataFrame(gini_results)
 
 
+def calculate_gini(df):
+    """Calcola l'indice di concentrazione di Gini per ogni post_id basato sul numero di righe per utente."""
+    gini_results = []
+    
+    # Raggruppa i dati per post_id
+    grouped = df.groupby('post_id')
+    
+    for post_id, group in tqdm(grouped):
+        # Conta il numero di righe per ogni utente
+        user_counts = group['user_id'].value_counts().reset_index()
+        user_counts.columns = ['user_id', 'count']
+        full_user_counts = user_counts
+        
+        # Calcola l'indice di Gini per questi conteggi
+        gini_index = gini_coefficient(full_user_counts['count'].values)
+        gini_results.append({'post_id': post_id, 'gini_index': gini_index})
+    
+    return pd.DataFrame(gini_results)
+
+
+
 def count_unique_users_within_period(post_date, period):
     # Ensure 'post_date' is in datetime format
     post_date_value = pd.to_datetime(post_date['post_date'])
