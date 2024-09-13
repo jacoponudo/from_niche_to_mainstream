@@ -1,6 +1,7 @@
 # Import
-
-data=reddit_size_interactionsize <- read_csv("reddit_size_interactionsize.csv")
+library(readr)
+data <- read_csv("randomization/reddit_random_size_vs_interaction.csv")
+data$num_comments_minus_1=data$num_comments-1
 colnames(data)
 install.packages("pscl")
 library(pscl)
@@ -14,7 +15,7 @@ summary(zip_model)
 
 # Modello ZIP con size categorica
 
-data$num_people_cat <- cut(data$num_people, breaks = c(-Inf, 50, 100,150,200, Inf), labels = c("0-50", "51-100","101-150", "151-200","200+"))
+data$num_people_cat <- cut(data$num_people, breaks = c(-Inf, 50, 100,150, Inf), labels = c("0-50", "51-100","101-150","150+"))
 zip_model <- zeroinfl(num_comments_minus_1 ~ num_people_cat | num_people_cat, data = data, dist = "poisson")
 summary(zip_model)
 
@@ -31,3 +32,5 @@ probabilities <- sapply(size_values, function(size) {
 })
 names(probabilities) <- size_values
 probabilities
+
+
