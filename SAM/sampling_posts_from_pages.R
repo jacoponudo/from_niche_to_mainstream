@@ -4,14 +4,13 @@
 
 # 1 
 ## Seleziono la lista di pagine 
-pages  <- c("185885781448435", "131498596889079", "143728442343553", "37791069588", 
-                "129869803756134", "129892740363306", "172730922764856", "456049707755135", 
-                "139471392786597", "291155398585")
-
+source("funcions.r")
+load("/media/jacoponudo/Elements/facebook_news/OriginalData/page_info.RData")
+pages  <- sample(page_info$fb_id,100)
 
 # 2
 ## Seleziono la lista di post per ciascuna pagina 
-folder_path <- "/media/gabett/Elements/facebook_news/OriginalData/PostsCSV/"
+folder_path <- "/media/jacoponudo/Elements/facebook_news/OriginalData/PostsCSV/"
 file_list <- list.files(path = folder_path, pattern = "*.csv", full.names = TRUE)
-all_filtered_data <- map_df(file_list, filter_data)
-write.csv(all_filtered_data,'~/Documents/repository/size-effect/SAM/sample/sample_posts.csv')
+all_filtered_data <- map_df(file_list, filter_data_page)
+write.csv(all_filtered_data,'~/Documents/Size_effects/SAM/sample/sample_posts.csv')

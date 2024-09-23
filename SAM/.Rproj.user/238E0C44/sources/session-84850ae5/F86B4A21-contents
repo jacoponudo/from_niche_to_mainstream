@@ -1,0 +1,3 @@
+Questa folder ha lo scopo di estrarre i longitudinali di poche pagine partendo dai dati del paper anatomy of news consumption, storati su elements di Matteo.
+
+Prima bisogna estrarre tutti i post di un sample di pagine (sampling_posts_from_pages) in un secondo momento estraiamo commenti e like relativi a questi post.

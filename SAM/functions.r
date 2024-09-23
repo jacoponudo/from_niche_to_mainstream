@@ -1,8 +1,10 @@
 # 0
 ## Importo tutti i pacchetti 
-install.packages("dplyr")
-install.packages("purrr")
-install.packages("progress") 
+
+#install.packages("dplyr")
+#install.packages("purrr")
+#install.packages("progress") 
+
 library(dplyr)
 library(purrr)
 library(progress)
@@ -32,4 +34,8 @@ filter_data_post<- function(file) {
   return(filtered_data)
 }
 
+pb <- progress_bar$new(
+  format = "  processing [:bar] :percent eta: :eta",
+  total = length(file_list), clear = FALSE, width = 60
+)
 
