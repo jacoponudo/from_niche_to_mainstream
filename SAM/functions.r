@@ -8,6 +8,7 @@
 library(dplyr)
 library(purrr)
 library(progress)
+library(data.table) 
 
 pb <- progress_bar$new(
   format = "  processing [:bar] :percent eta: :eta",
