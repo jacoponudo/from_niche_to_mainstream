@@ -1,5 +1,9 @@
-/Size_effects/SAM/sample
+/Size_effects/SAM/
 DATA/sample_comments.csv
 DATA/sample_likes.csv
 DATA/sample_longitudinals.csv
 DATA/sample_posts.csv
+.Rproj.user
+DATA/sample_interactions.csv
+DATA/page_size/157466287640348_monthly_moving_avg.csv
+DATA/page_size/
