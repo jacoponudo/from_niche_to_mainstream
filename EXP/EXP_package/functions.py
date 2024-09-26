@@ -101,3 +101,10 @@ def count_unique_users_within_period(post_date, period):
     # Count unique users commenting within the time window
     unique_users = relevant_comments['user_id'].nunique()
     return unique_users
+
+
+def clear_all():
+    for name in dir():
+        if not name.startswith('_'):
+            del globals()[name]
+    gc.collect()
