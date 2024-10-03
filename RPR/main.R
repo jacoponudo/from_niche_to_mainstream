@@ -3,8 +3,7 @@ library(ggplot2)
 library(dplyr)
 library(readr)
 library(pscl)
-data <- read_csv("~/Documents/Size_effects/RPR/reddit_size_vs_interaction.csv", col_types = cols(post_id = col_skip(), user_id = col_skip(), num_people_cat = col_skip()))
-platform='reddit'
+platform='usenet'
 format='interaction' # interaction or thread
 
 # Questo script contiene: 
@@ -14,20 +13,20 @@ format='interaction' # interaction or thread
 # - modello zip per verificare questa relazione usando la size come predittore di alpha e lambda.
 
 ##  Tread to interaction
-if(platform=='facebook'){
-  data <- read_csv("~/Documents/Size_effects/DATA/sample_interactions.csv", col_types = cols(...1 = col_skip()))}else{
+if (platform == 'facebook') {
+  data <- read_csv("~/Documents/Size_effects/DATA/sample_interactions.csv", col_types = cols(...1 = col_skip()))
+} else if (platform == 'reddit') {
   data <- read_csv("~/Documents/Size_effects/RPR/reddit_size_vs_interaction.csv", col_types = cols(post_id = col_skip(), user_id = col_skip(), num_people_cat = col_skip()))
-  
+} else if (platform == 'usenet') {
+  data <- read_csv("/home/jacoponudo/Documents/Size_effects/DATA/usenet/PRO_usenet.csv")
+  data <- data[, c(4, 3)]
+} else if (platform == 'twitter') {
+  data <- read_csv("/home/jacoponudo/Documents/Size_effects/DATA/twitter/PRO_twitter.csv")
 }
-if(format=='thread'){
-  if(min(data$num_comments_minus_1)==0){
-    data$num_comments_minus_1=data$num_comments_minus_1+1}
-}else{
-  colnames(data)=c('post_size', 'interaction_len')
-  if(min(data$interaction_len)==0){
-    data$interaction_len=data$interaction_len+1}
-  colnames(data)=c('post_size', 'interaction_len')
-  }
+
+
+
+colnames(data)=c('post_size', 'interaction_len')
 
 
 ## Alpha vs Size
@@ -36,13 +35,13 @@ reddit_size_vs_interaction <- data %>%
     interaction = interaction_len,
     post_size_class = cut(
       post_size,
-      breaks = quantile(post_size, probs = seq(0, 1, length.out = 41), na.rm = TRUE),
+      breaks = quantile(post_size, probs = seq(0, 1, length.out = b), na.rm = TRUE),
       include.lowest = TRUE,
       labels = paste0(
         "(", 
-        round(quantile(post_size, probs = seq(0, 1, length.out = 41), na.rm = TRUE)[-length(quantile(post_size, probs = seq(0, 1, length.out = 41), na.rm = TRUE))], 2), 
+        round(quantile(post_size, probs = seq(0, 1, length.out = b), na.rm = TRUE)[-length(quantile(post_size, probs = seq(0, 1, length.out = b), na.rm = TRUE))], 2), 
         ", ", 
-        round(quantile(post_size, probs = seq(0, 1, length.out = 41), na.rm = TRUE)[-1], 2), 
+        round(quantile(post_size, probs = seq(0, 1, length.out = b), na.rm = TRUE)[-1], 2), 
         "]"
       )
     )
