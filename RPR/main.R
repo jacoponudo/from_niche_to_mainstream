@@ -19,7 +19,6 @@ if (platform == 'facebook') {
   data <- read_csv("~/Documents/Size_effects/RPR/reddit_size_vs_interaction.csv", col_types = cols(post_id = col_skip(), user_id = col_skip(), num_people_cat = col_skip()))
 } else if (platform == 'usenet') {
   data <- read_csv("/home/jacoponudo/Documents/Size_effects/DATA/usenet/PRO_usenet.csv")
-  data <- data[, c(4, 3)]
 } else if (platform == 'twitter') {
   data <- read_csv("/home/jacoponudo/Documents/Size_effects/DATA/twitter/PRO_twitter.csv")
 }
