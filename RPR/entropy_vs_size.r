@@ -22,38 +22,40 @@ for (platform in platforms) {
   }
   
   # Filter data and rename columns for clarity
-  #data <- data[data$post_size < 500,]
+  #data <- data[data$post_size < 5000,]
   data <- na.omit(data)
   data$platform <- platform # Add platform as a column
   data_list[[platform]] <- data
-  data=na.omit(data)
 }
+
 # Combine all platform data into one data frame
 combined_data <- bind_rows(data_list)
+combined_data$interaction_len <- cut(combined_data$interaction_len, breaks = c(-Inf, 1, 3, 8, 10, 20, Inf), labels = c("1", "2-3", "4-8", "8-10", "10-20", "20-nf"), right = TRUE)
 
-# Create uniform post size classes with a step of 5
+# Create uniform post size classes with a step of 10
 combined_data <- combined_data %>%
-  mutate(post_size_class = cut(post_size, 
-                                breaks = seq(0, max(combined_data$post_size, na.rm = TRUE), by = 10), 
+  mutate(post_size_class = cut(log(post_size + 1),  # Adding 1 to avoid log(0)
+                                breaks = seq(0, log(max(combined_data$post_size, na.rm = TRUE) + 1), length.out = 50), 
                                 include.lowest = TRUE, 
-                                right = FALSE)) # Adjusted syntax
+                                right = FALSE))
 
-# Calculate the mean of alpha (interaction_len) and the percentage of single comments
-percentage_ones <- combined_data %>%
-  group_by(platform, post_size_class) %>% 
+# Calculate the entropy of interaction_len for each post size class
+entropy_data <- combined_data %>%
+  group_by(platform, post_size_class) %>%
   summarise(
-    percentage = mean(interaction_len == 1, na.rm = TRUE),
+    entropy = -sum((table(interaction_len) / n()) * log(table(interaction_len) / n()), na.rm = TRUE),
     count = n(), # Count observations per class
     .groups = 'drop'
   ) %>%
-  filter(count >= 1000) # Keep only classes with at least 500 observations
+  filter(count >= 5000) # Keep only classes with at least 1000 observations
 
 # Visualization
 ggplot() +
-  geom_line(data = percentage_ones, aes(x = post_size_class, y = percentage, color = platform, group = platform)) + # Connect points by platform
-  geom_point(data = percentage_ones, aes(x = post_size_class, y = percentage, color = platform), size = 7) +
-  scale_y_continuous(name = "Percentage of 1s", limits = c(0, 1)) +
-  labs(x = "Post Size Class (Uniform Bins)", title = "Interaction Length by Post Size Class with Percentage of 1s Across Platforms") +
+  geom_line(data = entropy_data, aes(x = post_size_class, y = entropy, color = platform, group = platform)) + # Connect points by platform
+  geom_point(data = entropy_data, aes(x = post_size_class, y = entropy, color = platform), size = 7) +
+  scale_y_continuous(name = "Entropy", limits = c(0, max(entropy_data$entropy, na.rm = TRUE))) +
+  labs(x = "Post Size Class (Uniform Bins)", title = "Entropy of Interaction Length by Post Size Class Across Platforms") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_color_manual(values = c("facebook" = "blue", "reddit" = "orange", "usenet" = "green", "twitter" = "red")) # Adjust colors as needed
+
