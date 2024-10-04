@@ -2,35 +2,32 @@ import pandas as pd
 import os
 from tqdm import tqdm
 
-# Directory path
-directory = '/media/jacoponudo/Elements/da spostare'
-
 # Nome del file da elaborare
-file_name = 'twitter_labeled_data_unified.parquet'
-
-# Path completo del file
-file_path = os.path.join(directory, file_name)
+file_name = '/home/jacoponudo/Documents/Size_effects/DATA/sample_comments.csv'
 
 # Lista per memorizzare i DataFrame elaborati
 dataframes = []
 
-# Colonne da leggere
-required_columns = ['author_id', 'post_id', 'created_at']
-
 # Variabile per contare il totale delle righe
 total_rows_count = 0
 
-# Carica solo le colonne richieste dal file Parquet
+# Carica solo le colonne richieste dal file CSV
 try:
-    data = pd.read_parquet(file_path, columns=required_columns)
+    data = pd.read_csv(file_name, usecols=['created_time', 'post_id', 'from_id'], encoding='ISO-8859-1')
+    data.rename(columns={'from_id': 'author_id'}, inplace=True)
+    posts = pd.read_csv('/home/jacoponudo/Documents/Size_effects/DATA/sample_posts.csv', usecols=['page_id', 'post_id'], encoding='ISO-8859-1')
+    posts_dict = posts.set_index('post_id').T.to_dict()
+    data['page_id'] = data['post_id'].map(lambda x: posts_dict.get(x, {}).get('page_id', None))
+
 except ValueError as e:
     print(f"Missing columns in file {file_name}: {e}")
+
 else:
-    # Estrai l'anno dalla colonna 'created_at' e crea la colonna 'year'
-    data['year'] = pd.to_datetime(data['created_at'], errors='coerce').dt.year
+    # Estrai mese e anno dalla colonna 'created_time' e crea la colonna 'month_year'
+    data['month_year'] = pd.to_datetime(data['created_time'], errors='coerce').dt.to_period('M').astype(str)
     
-    # Elimina la colonna 'created_at'
-    data = data.drop(columns=['created_at'])
+    # Elimina la colonna 'created_time'
+    data = data.drop(columns=['created_time'])
     
     # Incrementa il conteggio totale delle righe
     total_rows_count += data.shape[0]
@@ -42,8 +39,8 @@ else:
     # Step 3: Conta quante volte ogni autore appare per post
     author_post_count = data.groupby(['post_id', 'author_id']).size().reset_index(name='interaction_len')
     
-    # Aggiungi la colonna 'year' al conteggio degli autori
-    author_post_count = pd.merge(author_post_count, data[['post_id', 'year']].drop_duplicates(), on='post_id')
+    # Aggiungi la colonna 'month_year' al conteggio degli autori
+    author_post_count = pd.merge(author_post_count, data[['post_id', 'month_year']].drop_duplicates(), on='post_id')
     
     # Step 4: Unisci i due DataFrame su 'post_id'
     merged_data = pd.merge(users_per_post, author_post_count, on='post_id')
@@ -54,8 +51,8 @@ else:
 # Concatenate all DataFrames into a single dataset
 final_dataset = pd.concat(dataframes, ignore_index=True)
 
-# Salva il dataset finale con la colonna 'year' come terza colonna
-final_dataset[['post_size', 'interaction_len', 'year']].to_csv('/home/jacoponudo/Documents/Size_effects/DATA/twitter/PRO_twitter.csv', index=False)
+# Salva il dataset finale con la colonna 'month_year' come terza colonna
+final_dataset[['post_size', 'interaction_len', 'month_year']].to_csv('/home/jacoponudo/Documents/Size_effects/DATA/facebook/PRO_facebook.csv', index=False)
 
 # Conta il numero di post e di autori unici
 num_posts = final_dataset['post_id'].nunique()
