@@ -1,17 +1,10 @@
 library(readr)
 library(ggplot2)
 library(dplyr)
-library(pscl)
 
-platform = 'facebook'
+platform = 'twitter'
 
-# This script contains: 
-# - the transition from comment thread to interaction df (i.e., each row is an interaction with both the length of the interaction and the size of the thread)
-# - plot of the probability of making a single comment (~alpha) relative to the number of people involved in a conversation
-# - plot of the median number of comments made conditioned on having made more than one comment (lambda) relative to the number of people involved in a conversation
-# - zip model to verify this relationship using the size as a predictor of alpha and lambda.
-
-## Thread to interaction
+# Carica i dati in base alla piattaforma
 if (platform == 'facebook') {
   data <- read_csv("/home/jacoponudo/Documents/Size_effects/DATA/facebook/PRO_facebook.csv")
 } else if (platform == 'reddit') {
@@ -25,9 +18,6 @@ if (platform == 'facebook') {
 }
 
 data = na.omit(data)
-
-# Usa 'month_year' anziché 'year'
-data$month_year <- as.factor(data$month_year)
 
 # Funzione per calcolare l'entropia
 calculate_entropy <- function(x) {
@@ -43,31 +33,30 @@ summary_per_month <- data %>%
     avg_post_size = mean(post_size, na.rm = TRUE)
   )
 
-# Visualizza il risultato
-print(summary_per_month)
+# Converti la colonna 'month_year' in formato data
+summary_per_month$month_year <- as.Date(paste0(summary_per_month$month_year, "-01"), "%Y-%m-%d")
+summary_per_month$log_avg_post_size = log(summary_per_month$avg_post_size)
+
+# Crea il grafico con ggplot2 per maggiore eleganza
+ggplot(summary_per_month, aes(x = month_year)) +
+  # Linea per l'entropia
+  geom_line(aes(y = entropy, color = "Entropia"), size = 1.5) +
+  # Linea per la dimensione media dei post (in scala logaritmica)
+  geom_line(aes(y = log_avg_post_size, color = "Dimensione media (log)"), size = 1.5) +
+  # Aggiungi etichette e titolo
+  labs(title = paste("Entropia e Dimensione media dei post per", platform),
+       x = "Mese", 
+       y = "Valore",
+       color = "Legenda") +
+  # Stile del tema
+  theme_minimal() +
+  # Aggiungi una palette di colori più legata a Facebook
+  scale_color_manual(values = c("Entropia" = "blue", "Dimensione media (log)" = "gray40")) +
+  # Aggiungi griglia
+  theme(panel.grid.major = element_line(color = "gray85"),
+        panel.grid.minor = element_line(color = "gray90"),
+        plot.title = element_text(size = 14, face = "bold"),
+        legend.position = "top")
 
 
-
-
-
-
-plot(summary_per_month$entropy,log(summary_per_month$avg_post_size))
-
-
-
-
-# Load necessary library
-library(ggplot2)
-
-# Ensure the month_year column is in Date format
-summary_per_month$month_year <- as.Date(paste0(summary_per_month$month_year, "-01"), format = "%Y-%m-%d")
-
-# Create the time series plot
-ggplot(summary_per_month, aes(x = month_year, y = entropy)) +
-  geom_line(color = "blue") +  # Line plot for entropy
-  geom_point(color = "red") +   # Points for each data point
-  labs(title = "Time Series of Entropy", 
-       x = "Month and Year", 
-       y = "Entropy") +
-  theme_minimal() +              # Use a minimal theme
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for better readability
+#plot(summary_per_month$entropy,summary_per_month$log_avg_post_size)

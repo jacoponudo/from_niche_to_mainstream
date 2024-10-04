@@ -35,9 +35,9 @@ for file in tqdm(files):
         continue
     
     # Extract the year from the 'created_at' column and create 'year' column
-    data['year'] = pd.to_datetime(data['created_at'], errors='coerce').dt.year
+    data['month_year'] = pd.to_datetime(data['created_at'], errors='coerce').dt.to_period('M').astype(str)
     
-    # Drop the 'created_at' column
+    # Elimina la colonna 'created_time'
     data = data.drop(columns=['created_at'])
     
     # Increment total rows count
@@ -51,7 +51,7 @@ for file in tqdm(files):
     user_thread_count = data.groupby(['thread_id', 'author_id']).size().reset_index(name='interaction_len')
     
     # Merge year column with user_thread_count
-    user_thread_count = pd.merge(user_thread_count, data[['thread_id', 'year']].drop_duplicates(), on='thread_id')
+    user_thread_count = pd.merge(user_thread_count, data[['thread_id', 'month_year']].drop_duplicates(), on='thread_id')
     
     # Step 4: Merge the two DataFrames on 'thread_id'
     merged_data = pd.merge(users_per_thread, user_thread_count, on='thread_id')
@@ -63,7 +63,7 @@ for file in tqdm(files):
 final_dataset = pd.concat(dataframes, ignore_index=True)
 
 # Save the final dataset with 'year' as the third column
-final_dataset[['post_size', 'interaction_len', 'year']].to_csv('/home/jacoponudo/Documents/Size_effects/DATA/usenet/PRO_usenet.csv', index=False)
+final_dataset[['post_size', 'interaction_len', 'month_year']].to_csv('/home/jacoponudo/Documents/Size_effects/DATA/usenet/PRO_usenet.csv', index=False)
 
 # Count the number of posts and unique users
 num_posts = final_dataset['thread_id'].nunique()
