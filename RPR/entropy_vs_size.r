@@ -28,8 +28,6 @@ for (platform in platforms) {
   data_list[[platform]] <- data
 }
 
-combined_data <- combined_data %>%
-  filter(platform == 'facebook' & grepl('2011', month_year))
 # Combine all platform data into one data frame
 combined_data <- bind_rows(data_list)
 combined_data$interaction_len <- cut(combined_data$interaction_len, breaks = c(0, 1:10, Inf), labels = c(as.character(1:10), "10-nf"), right = FALSE)
