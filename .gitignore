@@ -15,3 +15,16 @@ DATA/sample_pages.csv
 DATA/usenet/PRO_usenet.csv
 DATA/twitter/PRO_twitter.csv
 DATA/facebook/PRO_facebook.csv
+DATA/facebook/sample_comments.csv
+DATA/facebook/sample_likes.csv
+DATA/facebook/sample_longitudinals.csv
+DATA/facebook/sample_outreach.csv
+DATA/facebook/sample_outreachs.csv
+DATA/facebook/sample_pages.csv
+DATA/facebook/sample_posts.csv
+DATA/youtube/youtube_labeled_data_unified.parquet
+DATA/voat/voat_labeled_data_unified.parquet
+DATA/reddit/reddit_labeled_data_unified.parquet
+DATA/gab/gab_labeled_data_unified.parquet
+DATA/reddit/PRO_reddit.csv
+DATA/voat/PRO_voat.csv
