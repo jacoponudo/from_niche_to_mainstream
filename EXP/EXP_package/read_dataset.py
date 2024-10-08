@@ -149,3 +149,46 @@ def plot_comment_distribution(data, platform):
     plt.ylabel('Number of posts')
     plt.grid(False)
     plt.show()
+
+
+
+def plot_comment_distribution(data, platform):
+    # Calculate the number of comments for each author
+    conversation_size_author = data.groupby('author_id')['author_id'].count().reset_index(name='comment_count')
+
+    # Count how many authors have a certain number of comments
+    post_count_author = conversation_size_author.groupby('comment_count').size().reset_index(name='user_count')
+
+    # Draw scatter plot with logarithmic scale on both axes for authors
+    plt.figure(figsize=(12, 8))
+    sns.scatterplot(data=post_count_author, x='comment_count', y='user_count', alpha=0.5, color='skyblue')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlim(1, 1000000)  # Set x-axis limits
+    plt.title(f'{platform} - Scatter plot of comments per author (log-log scale)')
+    plt.xlabel('Number of comments')
+    plt.ylabel('Number of authors')
+    plt.grid(False)
+    plt.show()
+
+
+
+def plot_interaction_len(data, platform):
+    # Conta quante volte ogni coppia (author_id, post_id) appare
+    conversation_size_author_post = data.groupby(['author_id', 'post_id']).size().reset_index(name='comment_count')
+
+    # Conta quante coppie hanno un certo numero di commenti
+    post_count_author_post = conversation_size_author_post.groupby('comment_count').size().reset_index(name='pair_count')
+
+    # Crea un grafico a dispersione (scatter plot) con scala logaritmica su entrambi gli assi
+    plt.figure(figsize=(12, 8))
+    sns.scatterplot(data=post_count_author_post, x='comment_count', y='pair_count', alpha=0.5, color='skyblue')
+    plt.xscale('log')
+    plt.yscale('lin')
+    plt.xlim(1, 1000000)  # Set x-axis limits
+    plt.title(f'{platform} - Scatter plot of comments per author-post pair (log-log scale)')
+    plt.xlabel('Number of comments per author-post pair')
+    plt.ylabel('Number of author-post pairs')
+    plt.grid(False)
+    plt.show()
+
