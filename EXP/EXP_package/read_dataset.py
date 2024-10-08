@@ -125,7 +125,7 @@ def plot_comment_distribution(data, platform):
     sns.scatterplot(data=post_count_author, x='comment_count', y='user_count', alpha=0.5, color='skyblue')
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlim(1, 10000)  # Set x-axis limits
+    plt.xlim(1, 1000000)  # Set x-axis limits
     plt.title(f'{platform} - Scatter plot of comments per author (log-log scale)')
     plt.xlabel('Number of comments')
     plt.ylabel('Number of authors')
@@ -143,7 +143,7 @@ def plot_comment_distribution(data, platform):
     sns.scatterplot(data=post_count_post, x='comment_count', y='post_count', alpha=0.5, color='skyblue')
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlim(1, 10000)  # Set x-axis limits
+    plt.xlim(1, 1000000)  # Set x-axis limits
     plt.title(f'{platform} - Scatter plot of comments per post (log-log scale)')
     plt.xlabel('Number of comments')
     plt.ylabel('Number of posts')
