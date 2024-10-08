@@ -53,14 +53,25 @@ entropy_data <- combined_data %>%
   ) %>%
   filter(count >= 1000) # Keep only classes with sufficient observations
 
-# Visualization
-ggplot() +
+
+
+
+library(ggplot2)
+
+# Create the plot
+plot <- ggplot() +
   geom_line(data = entropy_data, aes(x = post_size_class, y = entropy, color = platform, group = platform)) +
-  geom_point(data = entropy_data, aes(x = post_size_class, y = entropy, color = platform), size = 7) +
+  geom_point(data = entropy_data, aes(x = post_size_class, y = entropy, color = platform), size = 1.5) +
+  geom_vline(xintercept = 18, linetype = "dashed", color = "black") +
   scale_y_continuous(name = "Entropy", limits = c(0, max(entropy_data$entropy, na.rm = TRUE))) +
   labs(x = "Post Size Class (Uniform Bins)", title = "Entropy of Interaction Length by Post Size Class Across Platforms") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_color_manual(values = c("facebook" = "blue", "reddit" = "orange", "usenet" = "green", "twitter" = "red", "voat" = "purple")) # Added color for Voat
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14),
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16),
+        plot.title = element_text(size = 18, hjust = 0.5)) +
+  scale_color_manual(values = c("facebook" = "blue", "reddit" = "orange", "usenet" = "green", "twitter" = "red", "voat" = "purple"))
 
-
+# Save the plot with 16:8 aspect ratio
+ggsave("/home/jacoponudo/Documents/Size_effects/PLT/4_size_entropy/entropy_plot.png", plot = plot, width = 16, height = 8, dpi = 300)
