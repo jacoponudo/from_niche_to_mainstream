@@ -2,8 +2,8 @@ library(readr)
 library(ggplot2)
 library(dplyr)
 
-# List of platforms including Voat
-platforms <- c('facebook', 'reddit', 'usenet', 'twitter', 'voat')
+# List of platforms including Gab
+platforms <- c('facebook', 'reddit', 'usenet', 'twitter', 'voat', 'gab')
 data_list <- list()
 
 # Read data for all platforms and store in a list
@@ -19,6 +19,10 @@ for (platform in platforms) {
     data <- read_csv("/home/jacoponudo/Documents/Size_effects/DATA/twitter/PRO_twitter.csv")
   } else if (platform == 'voat') {
     data <- read_csv("/home/jacoponudo/Documents/Size_effects/DATA/voat/PRO_voat.csv")
+  } else if (platform == 'gab') {
+    data <- read_csv("/home/jacoponudo/Documents/Size_effects/DATA/gab/PRO_gab.csv")
+    # Adjust column names as necessary for Gab data
+    colnames(data) <- c('post_size', 'interaction_len', 'month_year')
   } 
   
   # Filter and clean data
@@ -53,11 +57,6 @@ entropy_data <- combined_data %>%
   ) %>%
   filter(count >= 1000) # Keep only classes with sufficient observations
 
-
-
-
-library(ggplot2)
-
 # Create the plot
 plot <- ggplot() +
   geom_line(data = entropy_data, aes(x = post_size_class, y = entropy, color = platform, group = platform)) +
@@ -71,7 +70,7 @@ plot <- ggplot() +
         axis.title.x = element_text(size = 16),
         axis.title.y = element_text(size = 16),
         plot.title = element_text(size = 18, hjust = 0.5)) +
-  scale_color_manual(values = c("facebook" = "blue", "reddit" = "orange", "usenet" = "green", "twitter" = "red", "voat" = "purple"))
+  scale_color_manual(values = c("facebook" = "blue", "reddit" = "orange", "usenet" = "green", "twitter" = "red", "voat" = "purple", "gab" = "brown"))
 
 # Save the plot with 16:8 aspect ratio
 ggsave("/home/jacoponudo/Documents/Size_effects/PLT/4_size_entropy/entropy_plot.png", plot = plot, width = 16, height = 8, dpi = 300)
