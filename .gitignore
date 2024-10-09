@@ -28,3 +28,4 @@ DATA/reddit/reddit_labeled_data_unified.parquet
 DATA/gab/gab_labeled_data_unified.parquet
 DATA/reddit/PRO_reddit.csv
 DATA/voat/PRO_voat.csv
+DATA/telegram/TGDataset_4.tar.gz
