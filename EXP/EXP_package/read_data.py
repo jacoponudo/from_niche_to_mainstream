@@ -1,5 +1,4 @@
 import pandas as pd
-import os
 
 def read_data(platform):
     # Definizione dei percorsi e dei nomi dei file per ciascuna piattaforma
@@ -15,7 +14,7 @@ def read_data(platform):
     
     required_columns = {
         'reddit': ['user_id', 'post_id', 'date'],
-        'facebook_comments': ['created_time', 'post_id', 'from_id'],
+        'facebook': ['created_time', 'post_id', 'from_id'],
         'voat': ['user', 'root_submission', 'created_at'],
         'gab': ['user', 'post_id', 'created_at'],
         'twitter': ['author_id', 'post_id', 'created_at'],
@@ -27,7 +26,7 @@ def read_data(platform):
             data = pd.read_parquet(file_paths[platform], columns=required_columns[platform])
             data.columns = ['author_id', 'post_id', 'created_at']
         
-        elif platform == 'facebook_comments':
+        elif platform == 'facebook':
             data = pd.read_csv(file_paths['facebook_comments'], usecols=required_columns[platform], encoding='ISO-8859-1')
             data.rename(columns={'from_id': 'author_id'}, inplace=True)
             posts = pd.read_csv(file_paths['facebook_posts'], usecols=['page_id', 'post_id'], encoding='ISO-8859-1')

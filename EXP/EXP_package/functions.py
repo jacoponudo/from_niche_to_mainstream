@@ -108,3 +108,41 @@ def clear_all():
         if not name.startswith('_'):
             del globals()[name]
     gc.collect()
+    
+    
+import pandas as pd
+from tqdm import tqdm
+
+def process_posts(df):
+    # Ordina per 'post_id' e 'created_at'
+    df = df.sort_values(by=['post_id', 'created_at']).reset_index(drop=True)
+
+    # Crea una colonna per calcolare il numero di volte che l'utente è comparso per il post_id fino a quel momento
+    df['user_post_count'] = df.groupby(['post_id', 'author_id']).cumcount() + 1
+
+    # Crea una colonna per calcolare il numero di utenti unici fino a quel momento per quel post
+    unique_user_counts = []
+    seen_users = {}
+
+    # Iteriamo riga per riga per tenere traccia degli utenti unici
+    for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing posts"):
+        post_id = row['post_id']
+        author_id = row['author_id']
+        
+        if post_id not in seen_users:
+            seen_users[post_id] = set()
+        
+        # Aggiungi l'utente corrente all'insieme di utenti visti per il post corrente
+        seen_users[post_id].add(author_id)
+        
+        # Conta gli utenti unici finora e aggiungi il conteggio alla lista
+        unique_user_counts.append(len(seen_users[post_id]))
+
+    # Aggiungi la lista come colonna al dataframe
+    df['unique_user_count'] = unique_user_counts
+    df.columns = ['author_id', 'post_id', 'created_at', 'len', 'size']
+    return df
+
+# Esempio di utilizzo
+# df = pd.read_csv('path_al_tuo_file.csv')  # Carica i dati se necessario
+# processed_df = process_posts(df)
