@@ -12,7 +12,6 @@ def calculate_len_entropy(group):
 def calculate_entropy_by_class(df, max_size=500, step=10):
     # Mantieni solo le colonne richieste
     df = df[['author_id', 'post_id', 'created_at', 'len', 'size']]
-    df[df['len']>10]['len']=10
     
     # Definisci i bin (gli intervalli)
     bins = list(range(0, max_size + 1, step)) + [np.inf]
@@ -46,6 +45,7 @@ def calculate_entropy_by_class(df, max_size=500, step=10):
 
     return entropy_by_class
 
+import matplotlib.pyplot as plt
 
 def plot_entropy(entropy_by_class, platform):
     # Define colors
@@ -82,7 +82,11 @@ def plot_entropy(entropy_by_class, platform):
     plt.grid(axis='y', linestyle='--', alpha=0.7)  # Added grid
     plt.tight_layout()
 
+    # Define the path and filename
+    save_path = f'/home/jacoponudo/Documents/Size_effects/PLT/5_dynamic_entropy/{platform}_dynamic_entropy.png'
+
+    # Save the plot
+    plt.savefig(save_path)
+
     # Show the plot
     plt.show()
-
-

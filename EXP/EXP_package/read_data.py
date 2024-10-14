@@ -65,6 +65,8 @@ def read_data(platform):
                 except ValueError as e:
                     print(f"Missing columns in file {file}: {e}")
             data = pd.concat(dataframes, ignore_index=True)
+            data=data[[ 'thread_id', 'author_id','created_at']]
+            data.columns = ['author_id', 'post_id', 'created_at']
 
         else:
             raise ValueError("Platform not recognized")

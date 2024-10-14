@@ -77,3 +77,69 @@ def read_data(platform):
     return data
 
 # Esempio di utilizzo
+import pandas as pd
+import os
+from tqdm import tqdm
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def plot_comment_distribution(data, platform):
+    # Definisci i colori per ciascuna piattaforma
+    platform_colors = {
+        'Reddit': '#FF5700',
+        'Voat': '#800080',
+        'Facebook': '#3b5998',
+        'Gab': '#00c853',
+        'Twitter': '#1DA1F2',  # Colore esempio per Twitter
+        'Usenet': '#7D7D7D'    # Colore esempio per Usenet
+    }
+    
+    # Seleziona il colore in base alla piattaforma
+    color = platform_colors.get(platform, 'skyblue')  # Usa 'skyblue' come colore predefinito se la piattaforma non è specificata
+    
+    # Percorso di salvataggio
+    base_path = "/home/jacoponudo/Documents/Size_effects/PLT/6_activity"
+    
+    # Calcola il numero di commenti per ogni autore
+    conversation_size_author = data.groupby(['author_id', 'post_id'])['author_id'].count().reset_index(name='comment_count')
+    
+    # Conta quanti autori hanno un certo numero di commenti
+    post_count_author = conversation_size_author.groupby('comment_count').size().reset_index(name='user_count')
+    
+    # Disegna lo scatter plot con scala logaritmica su entrambi gli assi per gli autori
+    plt.figure(figsize=(12, 8))
+    plt.scatter(post_count_author['comment_count'], post_count_author['user_count'], alpha=0.5, color=color)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlim(1, 1000000)  # Imposta i limiti dell'asse x
+    plt.title(f'{platform} Interaction Length Distribution')
+    plt.xlabel('Number of comments')
+    plt.ylabel('Number of interactions')
+    plt.grid(False)
+    interaction_len_path = f"{base_path}/{platform}_interaction_len_distribution.png"
+    plt.savefig(interaction_len_path, dpi=300)
+    plt.close()
+    
+    # Calcola il numero di commenti per ogni post
+    conversation_size_post = data.groupby('post_id')['post_id'].count().reset_index(name='comment_count')
+    
+    # Conta quanti post hanno un certo numero di commenti
+    post_count_post = conversation_size_post.groupby('comment_count').size().reset_index(name='post_count')
+    
+    # Disegna lo scatter plot con scala logaritmica su entrambi gli assi per i post
+    plt.figure(figsize=(12, 8))
+    plt.scatter(post_count_post['comment_count'], post_count_post['post_count'], alpha=0.5, color=color)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlim(1, 1000000)  # Imposta i limiti dell'asse x
+    plt.title(f'{platform} Post Size Distribution')
+    plt.xlabel('Number of comments')
+    plt.ylabel('Number of posts')
+    plt.grid(False)
+    post_size_path = f"{base_path}/{platform}_post_size_distribution.png"
+    plt.savefig(post_size_path, dpi=300)
+    plt.close()
