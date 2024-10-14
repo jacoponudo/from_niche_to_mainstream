@@ -116,7 +116,7 @@ def plot_comment_distribution(data, platform):
     plt.xscale('log')
     plt.yscale('log')
     plt.xlim(1, 1000000)  # Imposta i limiti dell'asse x
-    plt.title(f'{platform} Interaction Length Distribution')
+    plt.title(f'{platform.capitalize()}')
     plt.xlabel('Number of comments')
     plt.ylabel('Number of interactions')
     plt.grid(False)
@@ -136,7 +136,7 @@ def plot_comment_distribution(data, platform):
     plt.xscale('log')
     plt.yscale('log')
     plt.xlim(1, 1000000)  # Imposta i limiti dell'asse x
-    plt.title(f'{platform} Post Size Distribution')
+    plt.title(f'{platform.capitalize()}')
     plt.xlabel('Number of comments')
     plt.ylabel('Number of posts')
     plt.grid(False)
