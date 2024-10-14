@@ -12,6 +12,7 @@ def calculate_len_entropy(group):
 def calculate_entropy_by_class(df, max_size=500, step=10):
     # Mantieni solo le colonne richieste
     df = df[['author_id', 'post_id', 'created_at', 'len', 'size']]
+    df[df['len']>10]['len']=10
     
     # Definisci i bin (gli intervalli)
     bins = list(range(0, max_size + 1, step)) + [np.inf]

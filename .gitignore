@@ -30,3 +30,4 @@ DATA/reddit/PRO_reddit.csv
 DATA/voat/PRO_voat.csv
 DATA/telegram/TGDataset_4.tar.gz
 DATA/gab/PRO_gab.csv
+DATA/facebook/facebook_snews.csv
