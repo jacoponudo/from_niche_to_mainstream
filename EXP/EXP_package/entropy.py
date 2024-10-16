@@ -26,7 +26,7 @@ def calculate_entropy_by_class(df, max_size=500, step=10):
     group_counts = df['size_grouped'].value_counts()
 
     # Filtra i gruppi con meno di 10 elementi
-    filtered_groups = group_counts[group_counts >= 100].index
+    filtered_groups = group_counts[group_counts >= 500].index
 
     # Filtra il DataFrame per mantenere solo i gruppi validi
     df_filtered = df[df['size_grouped'].isin(filtered_groups)]
@@ -90,3 +90,4 @@ def plot_entropy(entropy_by_class, platform):
 
     # Show the plot
     plt.show()
+
