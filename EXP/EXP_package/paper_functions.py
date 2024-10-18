@@ -37,7 +37,7 @@ def calculate_entropy(distribution):
     return calc_entropy(distribution, base=2)
 
 # Define a function to handle platform-specific configurations
-def process_platform(platform, param):
+def process_platform(platform, param='alpha'):
     # Define directories and filenames
     data_directory = f'/home/jacoponudo/Documents/Size_effects/DATA/{platform}/'
     output_directory = '/home/jacoponudo/Documents/Size_effects/PLT/7_temporal/'
@@ -85,7 +85,7 @@ def process_platform(platform, param):
     
     return data
 
-def window_activity(df, sample_size=1000,window=60):
+def window_activity(df,platform, sample_size=1000,window=60):
     # Ensure the 'date' column is in datetime format
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
 
@@ -95,7 +95,7 @@ def window_activity(df, sample_size=1000,window=60):
     results = []
 
     # Use tqdm to show progress
-    for index, row in tqdm(sample_df.iterrows(), total=sample_df.shape[0], desc="Analyzing comments"):
+    for index, row in tqdm(sample_df.iterrows(), total=sample_df.shape[0], desc="Analyzing comments "+platform ):
         post_id = row['post_id']
         user_id = row['user_id']
         comment_time = row['date']
