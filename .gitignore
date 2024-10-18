@@ -32,3 +32,7 @@ DATA/telegram/TGDataset_4.tar.gz
 DATA/gab/PRO_gab.csv
 DATA/facebook/facebook_snews.csv
 DATA/facebook/PRO_facebook_cutted.csv
+DATA/usenet/usenet_labeled_data_unified.parquet
+DATA/usenet/usenet_labeled_data_unified.parquet
+DATA/usenet/usenet_labeled_data_unified.parquet
+DATA/usenet/usenet_labeled_data_unified.parquet

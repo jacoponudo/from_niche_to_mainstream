@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 from scipy.stats import entropy as calc_entropy
-
+from tqdm import tqdm
 def calculate_localization_parameter(phi):
     """
     Calculate the localization parameter L.
@@ -58,6 +58,18 @@ def process_platform(platform, param):
             'user_id': 'user_id',
             'created_at': 'date'
         }
+    elif platform == 'gab':
+        column_mapping = {
+            'post_id': 'post_id',
+            'user': 'user_id',
+            'created_at': 'date'
+        }
+    elif platform == 'usenet':
+        column_mapping = {
+            'thread_id': 'post_id',
+            'author_id': 'user_id',
+            'created_at': 'date'
+        }
     
     # Load the dataset (you can adjust depending on the file type)
     if filename.endswith('.parquet'):
@@ -73,3 +85,38 @@ def process_platform(platform, param):
     
     return data
 
+def window_activity(df, sample_size=1000,window=60):
+    # Ensure the 'date' column is in datetime format
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+
+    # Take a random sample of comments
+    sample_df = df.sample(n=sample_size, random_state=1)  # Set random_state for reproducibility
+
+    results = []
+
+    # Use tqdm to show progress
+    for index, row in tqdm(sample_df.iterrows(), total=sample_df.shape[0], desc="Analyzing comments"):
+        post_id = row['post_id']
+        user_id = row['user_id']
+        comment_time = row['date']
+
+        # Get comments within 10 minutes after the current comment
+        comments_within_10min = df[(df['post_id'] == post_id) & 
+                                     (df['date'] > comment_time) & 
+                                     (df['date'] <= comment_time + pd.Timedelta(minutes=60))]
+        num_comments_within_10min = len(comments_within_10min)
+
+        # Check if the user has commented again in the same conversation
+        user_returned = not df[(df['post_id'] == post_id) & 
+                               (df['user_id'] == user_id) & 
+                               (df['date'] > comment_time)].empty
+
+        results.append({
+            'post_id': post_id,
+            'user_id': user_id,
+            'comment_time': comment_time,
+            'num_comments_within_10min': num_comments_within_10min,
+            'user_returned': user_returned
+        })
+
+    return pd.DataFrame(results)
