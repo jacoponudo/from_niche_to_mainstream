@@ -120,3 +120,20 @@ def window_activity(df,platform, sample_size=1000,window=60):
         })
 
     return pd.DataFrame(results)
+
+def filter_out_tail(df,size=100):
+    # Ensure created_at is in datetime format
+    df['created_at'] = pd.to_datetime(df['date'], errors='coerce')
+    
+    # Sort the DataFrame by created_at
+    df = df.sort_values(by=['post_id', 'created_at'])
+    
+    # Group by post_id and filter the first hour of conversation
+    def filter_group(group):
+        start_time = group['created_at'].min()
+        return group[(group['created_at'] >= start_time) & 
+                     (group['created_at'] < start_time + pd.Timedelta(hours=100))]
+
+    filtered_df = df.groupby('post_id', group_keys=False).apply(filter_group)
+
+    return filtered_df.reset_index(drop=True)
