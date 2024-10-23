@@ -70,6 +70,12 @@ def process_platform(platform, param='alpha'):
             'author_id': 'user_id',
             'created_at': 'date'
         }
+    elif platform == 'twitter':
+        column_mapping = {
+            'post_id': 'post_id',
+            'author_id': 'user_id',
+            'created_at': 'date'
+        }
     
     # Load the dataset (you can adjust depending on the file type)
     if filename.endswith('.parquet'):
