@@ -6,8 +6,8 @@
 
 
 
-PAPER/tools/__pycache__/to_do.cpython-310.pyc
-PAPER/tools/__pycache__/to_plot.cpython-310.pyc
-PAPER/tools/__pycache__/to_read.cpython-310.pyc
+PAPER/tools/__pycache__/
 DATA
 
+PAPER/output
+PAPER/output/1_section
