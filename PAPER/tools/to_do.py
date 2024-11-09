@@ -45,7 +45,6 @@ def calculate_lifetime_percentile(data, percentile, output_path):
 
     # Salviamo il DataFrame come CSV nel percorso specificato
     result_df.to_csv(output_path, index=False)
-    print(f"File salvato in: {output_path}")
 
 # Function to calculate localization parameter
 def calculate_localization_parameter(phi):
