@@ -1,7 +1,7 @@
 from tqdm import tqdm
 import os
 
-platforms = [ 'reddit', 'twitter', 'usenet', 'voat','facebook','gab']
+platforms = ['reddit', 'twitter', 'usenet', 'voat', 'facebook','gab']
 for platform in tqdm(platforms):
     from tools.to_read import *
     from tools.to_plot import *
@@ -31,21 +31,24 @@ for platform in tqdm(platforms):
     unique_users_per_post = pd.read_csv(output_path)
     distribution = unique_users_per_post['unique_users_count'].value_counts().sort_index()
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(6, 6))
     plt.scatter(distribution.index, distribution.values, color=palette[platform], alpha=0.5)
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlim(1, 10**6)
+    plt.xlim(1, 10**5)
     plt.ylim(1, 10**6)
-    plt.xlabel('Number of users')
-    plt.ylabel('Number of posts')
-    plt.title(str(platform.capitalize()))
+    plt.xlabel('Number of users', fontsize=14)
+    plt.ylabel('Number of posts', fontsize=14)
+    plt.title(str(platform.capitalize()), fontsize=14)
     plt.grid(False)
     plt.tight_layout()
 
+    # Set tick parameters
+    plt.tick_params(axis='both', which='major', labelsize=14)
+
     plt.savefig(root + 'PAPER/output/1_section/1_users_in_thread_{}.png'.format(platform))
     plt.show()
-
+    '''
     # 2. Lifetime of a conversation
     output_path = root + 'PAPER/output/1_section/2_lifetime_thread_{}.csv'.format(platform)
     if not os.path.exists(output_path):
@@ -161,7 +164,7 @@ for platform in tqdm(platforms):
     plt.tight_layout()
     plt.savefig(plot_filename)
     plt.close()  # Close the plot to save memory
-
+'''
     # 4. Level of dialogue
     output_path = root + f'PAPER/output/1_section/4_dialogue_level_{platform}.csv'
     if not os.path.exists(output_path):
@@ -196,22 +199,32 @@ for platform in tqdm(platforms):
 
     plt.figure(figsize=(12, 6))
 
-    if 'user_count_bin' in locals() and 'user_count_bin' in filtered_df.columns:
-        bin_intervals = filtered_df['user_count_bin'].cat.categories
+    # Set x-axis labels
+    if 'user_count_bin' in locals() and 'user_count_bin' in localization_results.columns:
+        bin_intervals = localization_results['user_count_bin'].cat.categories
         x_labels = [str(int(interval.left)) for interval in bin_intervals]
     else:
         x_labels = conf_interval['bin_lower_bound'].astype(int).astype(str).tolist()
 
-    plt.xticks(ticks=range(len(x_labels)), labels=x_labels)
+    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, fontsize=14)
 
+    # Plotting
     plt.fill_between(conf_interval['user_count_bin'], conf_interval['localization_parameter_Q1'], conf_interval['localization_parameter_Q3'], color=palette[platform], alpha=0.2, label='Confidence Band (IQR)')
     plt.plot(conf_interval['user_count_bin'], conf_interval['localization_parameter'], marker='o', color=palette[platform], label='Median per Bin')
 
-    plt.xlabel('User Count Bin')
-    plt.ylabel('Localization')
+    # Set labels and legend
     plt.xlim(0, 9)
+    plt.ylim(1, 1.3)
+    if platform=='usenet':
+        plt.ylim(1, 2.2)
     plt.legend()
 
+    # Set tick parameters for both axes
+    plt.xlabel('Number of users', fontsize=14)
+    plt.ylabel('Localization', fontsize=14)
+    plt.tick_params(axis='both', which='major', labelsize=14)
+
+    # Save and show the plot
     plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}.png")
     plt.show()
 
@@ -220,7 +233,7 @@ for platform in tqdm(platforms):
 
     
 # Combine the plots
-plots = ['1_users_in_thread', '2_lifetime_thread', '3_concentration_of_comments', '4_dialogue_level']
+plots = ['1_users_in_thread','4_dialogue_level'] #['1_users_in_thread', '2_lifetime_thread', '3_concentration_of_comments', '4_dialogue_level']
 
 for plot in plots:
     images = [root + 'PAPER/output/1_section/' + plot + '_gab.png', 
@@ -230,7 +243,7 @@ for plot in plots:
               root + 'PAPER/output/1_section/' + plot + '_facebook.png',
               root + 'PAPER/output/1_section/' + plot + '_voat.png']
     
-    fig, axes = plt.subplots(3, 2, figsize=(12, 12))
+    fig, axes = plt.subplots(2, 3, figsize=(12, 12))
     for ax, img_path in zip(axes.flat, images):
         img = mpimg.imread(img_path)
         ax.imshow(img)
