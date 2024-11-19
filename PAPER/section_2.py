@@ -48,9 +48,9 @@ for platform in tqdm(platforms):
                                 index=[f"d={i}" for i in range(2, max_d + 1, 2)])
         density_df.to_csv(root + f'PAPER/output/2_section/density_matrix_{platform}.csv', index=True)
     density_matrix = pd.read_csv(root + f'PAPER/output/2_section/density_matrix_{platform}.csv', index_col=0)
-    plt.figure(figsize=(6, 6))
+    plt.figure(figsize=(10, 10))
     platform_color = palette[platform]
-    cmap = LinearSegmentedColormap.from_list("platform_to_white", ['white', platform_color], N=50)
+    cmap = LinearSegmentedColormap.from_list("platform_to_white", ['white', platform_color], N=100)
 
     # Crea l'heatmap
     sns.heatmap(density_matrix, cmap=cmap,
@@ -60,8 +60,8 @@ for platform in tqdm(platforms):
 
     # Imposta i label degli assi con dimensioni maggiorate
     plt.xlabel("Thread prefix length (k)", fontsize=14)
-    plt.ylabel("Number of distinct participants (d)", fontsize=14)
-    plt.title(f"{platform.capitalize()} Density Matrix", fontsize=16)
+    plt.ylabel("Number of users (d)", fontsize=14)
+    plt.title(f"{platform.capitalize()}", fontsize=14)
 
     # Riduci il numero di etichette dell'asse x e y visualizzate e ingrandisci i tick
     plt.xticks(ticks=np.arange(0, max_k // 2, step=5),
@@ -79,38 +79,3 @@ for platform in tqdm(platforms):
     plt.show()
 
 plt.close()  # Close the plot to free up memory
-
-# Configura la griglia dei subplot
-fig, axes = plt.subplots(2, 3, figsize=(18, 12))  # 2 righe, 3 colonne per 6 piattaforme
-axes = axes.flatten()  # Appiattisci gli assi per iterare facilmente
-
-for i, platform in enumerate(platforms):
-    density_matrix = pd.read_csv(root + f'PAPER/output/2_section/density_matrix_{platform}.csv', index_col=0)
-    platform_color = palette[platform]
-    cmap = LinearSegmentedColormap.from_list("platform_to_white", ['white', platform_color], N=500)
-    
-    # Crea l'heatmap nel sottografo corrispondente
-    sns.heatmap(density_matrix, cmap=cmap,
-                ax=axes[i],  # Assegna a ogni piattaforma un asse
-                cbar_kws={'label': 'Density'},
-                xticklabels=range(2, max_k + 1, 2),
-                yticklabels=range(2, max_d + 1, 2))
-
-    # Imposta i label degli assi e il titolo di ogni heatmap
-    axes[i].set_xlabel("Thread head length (k)", fontsize=14)
-    axes[i].set_ylabel("Number of users (d)", fontsize=14)
-    axes[i].set_title(f"{platform.capitalize()} ", fontsize=14)
-
-    # Riduci il numero di etichette dell'asse x e y
-    axes[i].set_xticks(np.arange(0, max_k // 2, step=5))
-    axes[i].set_xticklabels([f"{i*2}" for i in range(0, max_k // 2, 5)], rotation=45, fontsize=10)
-    axes[i].set_yticks(np.arange(0, max_d // 2, step=5))
-    axes[i].set_yticklabels([f"{i*2}" for i in range(0, max_d // 2, 5)], fontsize=10)
-    axes[i].invert_yaxis()
-
-# Regola gli spazi tra i subplot e mostra il plot finale
-plt.tight_layout()
-plt.subplots_adjust(hspace=0.4)  # Aumenta lo spazio verticale tra i subplot
-plt.savefig(root + "PAPER/output/2_section/combined_heatmap.png")
-plt.show()
-

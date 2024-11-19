@@ -1,7 +1,7 @@
 from tqdm import tqdm
 import os
 
-platforms = ['reddit', 'twitter', 'usenet', 'voat', 'facebook','gab']
+platforms = ['reddit', 'usenet', 'voat','gab', 'facebook','twitter']
 for platform in tqdm(platforms):
     from tools.to_read import *
     from tools.to_plot import *
@@ -31,20 +31,20 @@ for platform in tqdm(platforms):
     unique_users_per_post = pd.read_csv(output_path)
     distribution = unique_users_per_post['unique_users_count'].value_counts().sort_index()
 
-    plt.figure(figsize=(6, 6))
+    plt.figure(figsize=(10, 10))
     plt.scatter(distribution.index, distribution.values, color=palette[platform], alpha=0.5)
     plt.xscale('log')
     plt.yscale('log')
     plt.xlim(1, 10**5)
     plt.ylim(1, 10**6)
-    plt.xlabel('Number of users', fontsize=14)
-    plt.ylabel('Number of posts', fontsize=14)
-    plt.title(str(platform.capitalize()), fontsize=14)
+    plt.xlabel('Number of users', fontsize=30)
+    plt.ylabel('Number of posts', fontsize=30)
+    plt.title(str(platform.capitalize()), fontsize=35)
     plt.grid(False)
     plt.tight_layout()
 
     # Set tick parameters
-    plt.tick_params(axis='both', which='major', labelsize=14)
+    plt.tick_params(axis='both', which='major', labelsize=20)
 
     plt.savefig(root + 'PAPER/output/1_section/1_users_in_thread_{}.png'.format(platform))
     plt.show()
@@ -171,13 +171,14 @@ for platform in tqdm(platforms):
         grouped = data.groupby(['user_id', 'post_id']).size().reset_index(name='comment_count')
         user_count = data.groupby('post_id')['user_id'].nunique().reset_index(name='user_count')
         result = grouped.merge(user_count, on='post_id', how='left')
-        bins = np.arange(0, 1020, 50)
+        bins = np.arange(0, 1020, 20)
         result['user_count_bin'] = pd.cut(result['user_count'], bins=bins, right=False)
         valid_bins = result['user_count_bin'].value_counts()[result['user_count_bin'].value_counts() > 100].index
         result = result[result['user_count_bin'].isin(valid_bins)]
         result['comment_count'] = result['comment_count'].apply(lambda x: 5 if x > 5 else x)
         prob_dist = result.groupby(['user_count_bin', 'post_id'])['comment_count'].value_counts(normalize=True)
-
+        sampled_results = prob_dist.groupby('user_count_bin').apply(lambda x: x['post_id'].drop_duplicates().sample(min(100, len(x['post_id'].drop_duplicates())))).reset_index(drop=True)
+        filtered_prob_dist = prob_dist[prob_dist['post_id'].isin(sampled_results)]
         localization_results = prob_dist.groupby(['user_count_bin', 'post_id']).apply(lambda x: calculate_localization_parameter(x.values)).reset_index(name='localization_parameter')
         localization_results.to_csv(root + f'PAPER/output/1_section/4_dialogue_level_{platform}.csv')
 
@@ -197,7 +198,7 @@ for platform in tqdm(platforms):
     conf_interval = conf_interval.merge(localization_results[['user_count_bin', 'bin_lower_bound']].drop_duplicates(), on='user_count_bin')
     conf_interval = conf_interval.sort_values(by='bin_lower_bound').reset_index(drop=True)
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(10, 10))
 
     # Set x-axis labels
     if 'user_count_bin' in locals() and 'user_count_bin' in localization_results.columns:
@@ -206,7 +207,8 @@ for platform in tqdm(platforms):
     else:
         x_labels = conf_interval['bin_lower_bound'].astype(int).astype(str).tolist()
 
-    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, fontsize=14)
+    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, fontsize=20)
+    plt.yticks(fontsize=20)
 
     # Plotting
     plt.fill_between(conf_interval['user_count_bin'], conf_interval['localization_parameter_Q1'], conf_interval['localization_parameter_Q3'], color=palette[platform], alpha=0.2, label='Confidence Band (IQR)')
@@ -216,13 +218,13 @@ for platform in tqdm(platforms):
     plt.xlim(0, 9)
     plt.ylim(1, 1.3)
     if platform=='usenet':
-        plt.ylim(1, 2.2)
+        plt.ylim(1, 2.3)
     plt.legend()
 
     # Set tick parameters for both axes
-    plt.xlabel('Number of users', fontsize=14)
-    plt.ylabel('Localization', fontsize=14)
-    plt.tick_params(axis='both', which='major', labelsize=14)
+    plt.xlabel('Number of users', fontsize=30)
+    plt.ylabel('Localization', fontsize=30)
+    plt.title(str(platform.capitalize()), fontsize=35)
 
     # Save and show the plot
     plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}.png")
@@ -230,29 +232,3 @@ for platform in tqdm(platforms):
 
     print('Done for ' + platform + '!')
 
-
-    
-# Combine the plots
-plots = ['1_users_in_thread','4_dialogue_level'] #['1_users_in_thread', '2_lifetime_thread', '3_concentration_of_comments', '4_dialogue_level']
-
-for plot in plots:
-    images = [root + 'PAPER/output/1_section/' + plot + '_gab.png', 
-              root + 'PAPER/output/1_section/' + plot + '_reddit.png', 
-              root + 'PAPER/output/1_section/' + plot + '_twitter.png',
-              root + 'PAPER/output/1_section/' + plot + '_usenet.png',
-              root + 'PAPER/output/1_section/' + plot + '_facebook.png',
-              root + 'PAPER/output/1_section/' + plot + '_voat.png']
-    
-    fig, axes = plt.subplots(2, 3, figsize=(12, 12))
-    for ax, img_path in zip(axes.flat, images):
-        img = mpimg.imread(img_path)
-        ax.imshow(img)
-        ax.axis('off')  
-
-    # Adjust layout
-    plt.tight_layout()
-
-    # Save the combined image
-    combined_image_path = root + 'PAPER/output/1_section/' + plot + '.png'
-    plt.savefig(combined_image_path)
-    plt.show()
