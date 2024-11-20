@@ -36,18 +36,28 @@ column_renaming = {
         'user': 'user_id',
         'root_submission': 'post_id',
         'created_at': 'timestamp'
+    },
+        'gab': {
+        'topic': 'page_id',
+        'user': 'user_id',
+        'post_id': 'post_id',
+        'created_at': 'timestamp'
+    }
+,
+        'usenet': {
+        'topic': 'page_id',
+        'author_id': 'user_id',
+        'thread_id': 'post_id',
+        'created_at': 'timestamp'
     }
 }
 
 # Function to read and rename columns based on platform
 def read_and_rename(platform, root):
-    # Read the data for the specific platform
-    if platform == 'reddit':
-        df = pd.read_parquet(root + 'DATA/' + platform + '/' + platform + '_raw_data.parquet', columns=['topic', 'user_id', 'post_id', 'date'])
-    elif platform == 'voat':
-        df = pd.read_parquet(root + 'DATA/' + platform + '/' + platform + '_raw_data.parquet', columns=['topic', 'user', 'root_submission', 'created_at'])
-    else:
+    if platform=='facebook':
         df = pd.read_parquet(root + 'DATA/' + platform + '/' + platform + '_raw_data.parquet')
+    else:
+        df = pd.read_parquet(root + 'DATA/' + platform + '/' + platform + '_raw_data.parquet', columns=list(column_renaming[platform].keys()))
     
     # Rename the columns according to the dictionary
     df.rename(columns=column_renaming[platform], inplace=True)
