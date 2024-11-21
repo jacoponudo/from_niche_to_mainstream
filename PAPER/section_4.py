@@ -38,7 +38,7 @@ for platform in tqdm(platforms):
         
         # Creazione dei bins logaritmici
         bin_start = 10
-        bin_end = 25000
+        bin_end = 12500
 
         # Calcolare i limiti dei bins utilizzando logaritmi (log base 10)
         bins = np.logspace(np.log10(bin_start), np.log10(bin_end), num=20)
@@ -76,52 +76,66 @@ for platform in tqdm(platforms):
         # Mostriamo il risultato del merge
         localization_results.to_csv(root + f'PAPER/output/4_section/5_size_effect_{platform}.csv')
 
+
     # Carica i dati
     merged_df = pd.read_csv(root + f'PAPER/output/4_section/5_size_effect_{platform}.csv')
 
-    # Definisce il colore dalla palette
+    # Definisci il colore dalla palette
     color = palette[platform]
 
     # Estrai e arrotonda la colonna 'binned_lower'
     merged_df['binned_lower'] = merged_df['binned'].apply(lambda x: float(x.split(',')[0][1:])).round()
 
-    # Check for NaN or Inf values and remove rows with such values
-    merged_df = merged_df.dropna(subset=['binned_lower', 'localization_parameter'])  # Remove rows with NaN
-    merged_df = merged_df[np.isfinite(merged_df['localization_parameter'])]  # Remove rows with Inf
+    # Filtra righe con valori NaN o Inf
+    merged_df = merged_df.dropna(subset=['binned_lower', 'localization_parameter'])
+    merged_df = merged_df[np.isfinite(merged_df['localization_parameter'])]
 
-    # Data for spline interpolation
+    # Dati per l'interpolazione
     x = merged_df['binned_lower']
     y = merged_df['localization_parameter']
 
-    # Make sure x and y are numeric (in case there's still some non-numeric data)
+    # Assicurati che x e y siano numerici
     x = pd.to_numeric(x, errors='coerce')
     y = pd.to_numeric(y, errors='coerce')
 
-    # Remove rows that have become NaN after conversion
-    merged_df = merged_df.dropna(subset=['binned_lower', 'localization_parameter'])
+    # Rimuovi righe non valide
+    valid_idx = (~x.isna()) & (x > 0) & (~y.isna())
+    x = x[valid_idx]
+    y = y[valid_idx]
 
-    # Create a cubic spline (k=3)
-    spl = make_interp_spline(x, y, k=3)
+    # Applicazione della scala logaritmica per interpolazione
+    log_x = np.log(x)
 
-    # Generate a smooth curve
-    x_smooth = np.linspace(x.min(), x.max(), 500)
-    y_smooth = spl(x_smooth)
+    # Creazione della spline cubica su scala logaritmica
+    spl = make_interp_spline(log_x, y, k=3)
 
-    # Plot the smoothed line
-    plt.plot(x_smooth, y_smooth, color=color, label='Smoothed line')
+    # Genera una curva smussata
+    log_x_smooth = np.linspace(log_x.min(), log_x.max(), 500)
+    y_smooth = spl(log_x_smooth)
 
-    # Add the original points as scatter plot
+    # Converte i valori di x_smooth dalla scala logaritmica a quella lineare
+    x_smooth = np.exp(log_x_smooth)
+
+    # Creazione del grafico
+    plt.figure(figsize=(d1, d2))
+
+    # Linea smussata
+    plt.plot(x_smooth, y_smooth, color=color, label='Smoothed line', linewidth=2)
+
+    # Punti originali
     plt.scatter(x, y, color=color, zorder=5)
 
-    # Add axis labels and title
-    plt.xlabel('Page outreach', fontsize=30)
-    plt.ylabel('Localization', fontsize=30)
-    plt.title(str(platform.capitalize()), fontsize=35)
+    # Etichette degli assi e titolo
+    plt.xlabel('Page outreach', fontsize=xl)
+    plt.ylabel('Localization', fontsize=xl)
+    plt.title(str(platform.capitalize()), fontsize=T)
+    plt.tick_params(axis='both', which='major', labelsize=t)
 
-    # Additional settings
+    # Altre impostazioni
     plt.tight_layout()
-    plt.ylim(1, 1.3)
+    plt.ylim(1, 1.25)
+    plt.xscale('log')
 
-    # Save and show the plot
+    # Salva e mostra il grafico
     plt.savefig(f"{root}PAPER/output/4_section/5_size_effect_{platform}.png")
     plt.show()

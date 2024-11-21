@@ -14,3 +14,11 @@ import re
 def extract_number(bin_string):
     match = re.search(r'\d+', bin_string)  # Find the first number in the string
     return float(match.group()) if match else float('inf')  # Return the number or a large value
+
+d1=10
+d2=10
+
+t=14
+T=50
+xl=35
+yl=35

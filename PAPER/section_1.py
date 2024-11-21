@@ -31,23 +31,23 @@ for platform in tqdm(platforms):
     unique_users_per_post = pd.read_csv(output_path)
     distribution = unique_users_per_post['unique_users_count'].value_counts().sort_index()
 
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(d1, d1))
     plt.scatter(distribution.index, distribution.values, color=palette[platform], alpha=0.5)
     plt.xscale('log')
     plt.yscale('log')
     plt.xlim(1, 10**5)
     plt.ylim(1, 10**6)
-    plt.xlabel('Number of users', fontsize=30)
-    plt.ylabel('Number of posts', fontsize=30)
-    plt.title(str(platform.capitalize()), fontsize=35)
+    plt.xlabel('Number of users', fontsize=xl)
+    plt.ylabel('Number of posts', fontsize=yl)
+    plt.title(str(platform.capitalize()), fontsize=T)
     plt.grid(False)
     plt.tight_layout()
 
     # Set tick parameters
-    plt.tick_params(axis='both', which='major', labelsize=20)
+    plt.tick_params(axis='both', which='major', labelsize=t)
 
     plt.savefig(root + 'PAPER/output/1_section/1_users_in_thread_{}.png'.format(platform))
-    plt.show()
+
     '''
     # 2. Lifetime of a conversation
     output_path = root + 'PAPER/output/1_section/2_lifetime_thread_{}.csv'.format(platform)
@@ -172,9 +172,9 @@ for platform in tqdm(platforms):
         user_count = data.groupby('post_id')['user_id'].nunique().reset_index(name='user_count')
         result = grouped.merge(user_count, on='post_id', how='left')
         bin_start = 10
-        bin_end = 400
+        bin_end = 500
 
-        bins = np.logspace(np.log10(bin_start), np.log10(bin_end), num=10)
+        bins = np.logspace(np.log10(bin_start), np.log10(bin_end), num=12)
         result['user_count_bin'] = pd.cut(result['user_count'], bins=bins, right=False)
         valid_bins = result['user_count_bin'].value_counts()[result['user_count_bin'].value_counts() > 1000].index
         result = result[result['user_count_bin'].isin(valid_bins)]
@@ -182,10 +182,10 @@ for platform in tqdm(platforms):
         balanced_result = result.groupby('user_count_bin').apply(
             lambda x: x.sample(n=min(len(x), 1000), random_state=42) if len(x) > 0 else x
         ).reset_index(drop=True)
-        balanced_result = result.groupby('user_count_bin').apply(lambda x: x.sample(n=100000,replace=True, random_state=42) if len(x) > 0 else x).reset_index(drop=True)
+        balanced_result = result#.groupby('user_count_bin').apply(lambda x: x.sample(n=100000,replace=True, random_state=42) if len(x) > 0 else x).reset_index(drop=True)
 
         # Creazione dei sub-bins, dividendo ogni bin in 10 gruppi da 100
-        balanced_result['subbin'] =balanced_result.groupby('user_count_bin').cumcount() // 1000 + 1
+        balanced_result['subbin'] =balanced_result.groupby('user_count_bin').cumcount() // 500 + 1
 
         prob_dist = balanced_result.groupby(['user_count_bin','subbin'])['comment_count'].value_counts(normalize=True)
         localization_results = prob_dist.groupby(['user_count_bin','subbin']).apply(lambda x: calculate_localization_parameter(x.values)).reset_index(name='localization_parameter')
@@ -207,7 +207,7 @@ for platform in tqdm(platforms):
     conf_interval = conf_interval.merge(localization_results[['user_count_bin', 'bin_lower_bound']].drop_duplicates(), on='user_count_bin')
     conf_interval = conf_interval.sort_values(by='bin_lower_bound').reset_index(drop=True)
 
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(d1, d2))
 
     # Set x-axis labels
     if 'user_count_bin' in locals() and 'user_count_bin' in localization_results.columns:
@@ -216,8 +216,8 @@ for platform in tqdm(platforms):
     else:
         x_labels = conf_interval['bin_lower_bound'].astype(int).astype(str).tolist()
 
-    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, fontsize=20)
-    plt.yticks(fontsize=20)
+    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, fontsize=t)
+    plt.yticks(fontsize=t)
 
     # Plotting
     plt.fill_between(conf_interval['user_count_bin'], conf_interval['localization_parameter_Q1'], conf_interval['localization_parameter_Q3'], color=palette[platform], alpha=0.2, label='Confidence Band (IQR)')
@@ -227,17 +227,16 @@ for platform in tqdm(platforms):
     plt.xlim(0, 11)
     plt.ylim(1, 1.15)
     if platform=='usenet':
-        plt.ylim(1, 1.9)
+        plt.ylim(1, 2.1)
     plt.legend()
 
     # Set tick parameters for both axes
-    plt.xlabel('Number of users', fontsize=30)
-    plt.ylabel('Localization', fontsize=30)
-    plt.title(str(platform.capitalize()), fontsize=35)
+    plt.xlabel('Number of users', fontsize=xl)
+    plt.ylabel('Localization', fontsize=yl)
+    plt.title(str(platform.capitalize()), fontsize=T)
 
     # Save and show the plot
     plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}.png")
-    plt.show()
 
     print('Done for ' + platform + '!')
 

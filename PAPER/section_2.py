@@ -48,7 +48,7 @@ for platform in tqdm(platforms):
                                 index=[f"d={i}" for i in range(2, max_d + 1, 2)])
         density_df.to_csv(root + f'PAPER/output/2_section/density_matrix_{platform}.csv', index=True)
     density_matrix = pd.read_csv(root + f'PAPER/output/2_section/density_matrix_{platform}.csv', index_col=0)
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(d1, d2))
     platform_color = palette[platform]
     cmap = LinearSegmentedColormap.from_list("platform_to_white", ['white', platform_color], N=100)
 
@@ -59,17 +59,17 @@ for platform in tqdm(platforms):
                 yticklabels=range(2, max_d + 1, 2))
 
     # Imposta i label degli assi con dimensioni maggiorate
-    plt.xlabel("Thread prefix length (k)", fontsize=14)
-    plt.ylabel("Number of users (d)", fontsize=14)
-    plt.title(f"{platform.capitalize()}", fontsize=14)
+    plt.xlabel("Thread prefix length (k)", fontsize=xl)
+    plt.ylabel("Number of users (d)", fontsize=xl)
+    plt.title(f"{platform.capitalize()}", fontsize=T)
 
     # Riduci il numero di etichette dell'asse x e y visualizzate e ingrandisci i tick
     plt.xticks(ticks=np.arange(0, max_k // 2, step=5),
             labels=[f"{i*2}" for i in range(0, max_k // 2, 5)], 
-            rotation=45, fontsize=12)
+            rotation=45, fontsize=t)
     plt.yticks(ticks=np.arange(0, max_d // 2, step=5),
             labels=[f"{i*2}" for i in range(0, max_d // 2, 5)], 
-            fontsize=12)
+            fontsize=t)
 
     # Inverti l'asse y per mantenere la convenzione della heatmap
     plt.gca().invert_yaxis()

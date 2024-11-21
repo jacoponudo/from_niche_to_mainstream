@@ -12,10 +12,9 @@ import os
 
 root = '/home/jacoponudo/Documents/Size_effects/'
 platforms = ['voat','usenet','gab','twitter','reddit','facebook']
-
-s=1000 # number of users studied
+s=10000 # number of users studied
 k=20 # number of comments observed
-m=6 # consider born user just if not in the first m months 
+m=4 # consider born user just if not in the first m months 
 
 for platform in tqdm(platforms):
     output_path = root + f'PAPER/output/5_section/{platform}_regression_parameters.csv'
@@ -26,11 +25,10 @@ for platform in tqdm(platforms):
         data = data[~data['user_id'].isin(excluded_users)]
         
         # Prendi solo i primi 10 utenti (unici)
-        unique_users = data['user_id'].drop_duplicates().head(s)
+        unique_users = data['user_id'].drop_duplicates().sample(n=s, random_state=42)
 
         # Filtra i dati per mantenere solo quelli relativi a questi utenti
         data = data[data['user_id'].isin(unique_users)]
-
         # Ordinare i dati
         data = data.sort_values(by=['page_id', 'user_id', 'timestamp'])
         data['interaction_len'] = data.groupby(['post_id', 'user_id'])['post_id'].transform('size')
@@ -56,8 +54,7 @@ for platform in tqdm(platforms):
         data_filtered = data[data['user_id'].isin(data.groupby('user_id')['posts_commented'].max()[data.groupby('user_id')['posts_commented'].max() > k].index)]
 
         data_filtered = data_filtered[data_filtered['posts_commented'] <k]
-        # Visualizzare il risultato
-        print(data_filtered[['user_id','post_id','interaction_len','posts_commented']].drop_duplicates())
+        print(  ' Unique users:' +str(len(data_filtered['user_id'].unique())) +'/'+str(s))
         from scipy.stats import linregress
 
         # Supponiamo che tu abbia già il DataFrame 'data' caricato
@@ -100,15 +97,15 @@ for platform in tqdm(platforms):
     centroid_y = results_df['intercept'].median()  # Media della colonna 'intercept'
 
     # Imposta la figura
-    plt.figure(figsize=(6, 6))
+    plt.figure(figsize=(d1, d2))
 
     # Crea il grafico a dispersione
     sns.scatterplot(data=results_df, x='slope', y='intercept', color=palette[platform])
 
     # Aggiungi un titolo e le etichette degli assi
-    plt.xlabel('Slope', fontsize=30)
-    plt.ylabel('Intercept', fontsize=30)
-    plt.title(str(platform.capitalize()), fontsize=35)
+    plt.xlabel('Slope', fontsize=xl)
+    plt.ylabel('Intercept', fontsize=yl)
+    plt.title(str(platform.capitalize()), fontsize=T)
     plt.xlim(-1, 1)
     plt.ylim(-10, 10)
 
@@ -119,14 +116,22 @@ for platform in tqdm(platforms):
     # Aggiungi il punto del centroide con lo stesso colore delle linee degli assi
     plt.scatter(centroid_x, centroid_y, color=palette[platform], zorder=5, s=100, label=f'Median: (Slope={centroid_x:.2f}, Intercept={centroid_y:.2f})', edgecolor='black')
 
+    # Aggiungi il messaggio nel grafico
+    plt.text(
+        0.5, -9,  # Posizione (x, y) nel grafico
+        f'Users with more than {k} comments: {len(results_df["user_id"].unique())}/{s}',  # Testo
+        fontsize=12, color='black', ha='center', bbox=dict(facecolor='white', alpha=0)  # Sfondo bianco trasparente
+    )
+
     # Aggiungi una griglia tratteggiata
     plt.grid(True, which='both', axis='both', color='gray', linestyle='--', linewidth=1)
 
     # Aggiungi una legenda per il centroide
     plt.legend(fontsize=10)
+    plt.tick_params(axis='both', which='major', labelsize=t)
 
     # Salva il grafico come file PNG
-    plt.savefig('scatterplot_results.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f"{root}PAPER/output/5_section/5_size_effect_{platform}.png", dpi=300, bbox_inches='tight')
 
     # Mostra il grafico
     plt.show()
