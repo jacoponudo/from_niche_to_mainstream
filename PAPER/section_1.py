@@ -171,15 +171,24 @@ for platform in tqdm(platforms):
         grouped = data.groupby(['user_id', 'post_id']).size().reset_index(name='comment_count')
         user_count = data.groupby('post_id')['user_id'].nunique().reset_index(name='user_count')
         result = grouped.merge(user_count, on='post_id', how='left')
-        bins = np.arange(0, 1020, 20)
+        bin_start = 10
+        bin_end = 400
+
+        bins = np.logspace(np.log10(bin_start), np.log10(bin_end), num=10)
         result['user_count_bin'] = pd.cut(result['user_count'], bins=bins, right=False)
-        valid_bins = result['user_count_bin'].value_counts()[result['user_count_bin'].value_counts() > 100].index
+        valid_bins = result['user_count_bin'].value_counts()[result['user_count_bin'].value_counts() > 1000].index
         result = result[result['user_count_bin'].isin(valid_bins)]
-        result['comment_count'] = result['comment_count'].apply(lambda x: 5 if x > 5 else x)
-        prob_dist = result.groupby(['user_count_bin', 'post_id'])['comment_count'].value_counts(normalize=True)
-        sampled_results = prob_dist.groupby('user_count_bin').apply(lambda x: x['post_id'].drop_duplicates().sample(min(100, len(x['post_id'].drop_duplicates())))).reset_index(drop=True)
-        filtered_prob_dist = prob_dist[prob_dist['post_id'].isin(sampled_results)]
-        localization_results = prob_dist.groupby(['user_count_bin', 'post_id']).apply(lambda x: calculate_localization_parameter(x.values)).reset_index(name='localization_parameter')
+        result['comment_count'] = result['comment_count'].apply(lambda x: 10 if x > 10 else x)
+        balanced_result = result.groupby('user_count_bin').apply(
+            lambda x: x.sample(n=min(len(x), 1000), random_state=42) if len(x) > 0 else x
+        ).reset_index(drop=True)
+        balanced_result = result.groupby('user_count_bin').apply(lambda x: x.sample(n=100000,replace=True, random_state=42) if len(x) > 0 else x).reset_index(drop=True)
+
+        # Creazione dei sub-bins, dividendo ogni bin in 10 gruppi da 100
+        balanced_result['subbin'] =balanced_result.groupby('user_count_bin').cumcount() // 1000 + 1
+
+        prob_dist = balanced_result.groupby(['user_count_bin','subbin'])['comment_count'].value_counts(normalize=True)
+        localization_results = prob_dist.groupby(['user_count_bin','subbin']).apply(lambda x: calculate_localization_parameter(x.values)).reset_index(name='localization_parameter')
         localization_results.to_csv(root + f'PAPER/output/1_section/4_dialogue_level_{platform}.csv')
 
     # Plotting
@@ -215,10 +224,10 @@ for platform in tqdm(platforms):
     plt.plot(conf_interval['user_count_bin'], conf_interval['localization_parameter'], marker='o', color=palette[platform], label='Median per Bin')
 
     # Set labels and legend
-    plt.xlim(0, 9)
-    plt.ylim(1, 1.3)
+    plt.xlim(0, 11)
+    plt.ylim(1, 1.15)
     if platform=='usenet':
-        plt.ylim(1, 2.3)
+        plt.ylim(1, 1.9)
     plt.legend()
 
     # Set tick parameters for both axes
