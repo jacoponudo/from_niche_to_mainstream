@@ -1,141 +1,147 @@
-from tools.to_read import *
-from tools.to_plot import *
-from tools.to_do import *
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 from tqdm import tqdm
-import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
-import os
-from tqdm import tqdm
-from scipy.interpolate import make_interp_spline
+from tools.to_read import *
+from tools.to_do import *
+from tools.to_plot import *
 
+# Define root path for saving results
 root = '/home/jacoponudo/Documents/Size_effects/'
 
-platforms = ['twitter','reddit','facebook','voat','gab','usenet']
+# Platform types and index categories
+platforms = ['reddit', 'usenet', 'voat', 'gab', 'facebook', 'twitter']
+types = ['_localization', '_alpha']
+
+# Parameters for data filtering and processing
+ignore_under = 50  # Minimum outreach threshold to avoid U-shaped trends
+group_size = 1000  # Number of interactions per bin
+time_window = 12  # Time window for smoothing the time series (weeks)
+correction = 5  # Maximum value of interaction count for corrections
+
+# Iterate over the different platform types and index types
 for platform in tqdm(platforms):
-    output_path = root + f'PAPER/output/4_section/5_size_effect_{platform}.csv'
-    if not os.path.exists(output_path):
-        df = read_and_rename(platform, root)
-        # Assicurati che la colonna 'timestamp' sia di tipo datetime
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-
-        # Aggiungi una colonna 'week' che rappresenta la settimana dell'anno
-        df['week'] = df['timestamp'].dt.to_period('d')
-
-        # Raggruppa per 'page_id', 'week' e calcola il numero di utenti univoci per ogni combinazione
-        weekly_unique_users = df.groupby(['page_id', 'week'])['user_id'].nunique().reset_index()
-
-        # Rinominare la colonna per maggiore chiarezza
-        weekly_unique_users.rename(columns={'user_id': 'unique_users_count'}, inplace=True)
-
-        # Ordinare per 'page_id' e 'week' (assicurarsi che i dati siano in ordine)
-        weekly_unique_users = weekly_unique_users.sort_values(by=['page_id', 'week'])
-
-        # Aggiungere la media mobile a 3 settimane (o a una finestra che preferisci)
-        weekly_unique_users['smoothed_users_count'] = weekly_unique_users.groupby('page_id')['unique_users_count'].rolling(window=30, min_periods=1).mean().reset_index(level=0, drop=True)
+    for type in types:
+        output_path = f'{root}PAPER/output/4_section/5_size_effect_{platform}{type}.csv'
         
-        # Creazione dei bins logaritmici
-        bin_start = 10
-        bin_end = 12500
+        # If the output file does not exist, process and generate data
+        if not os.path.exists(output_path):
+            # Load and preprocess data for the platform
+            df = read_and_rename(platform, root)
+            df['timestamp'] = pd.to_datetime(df['timestamp'])  # Convert timestamp to datetime
+            df['week'] = df['timestamp'].dt.to_period('W')  # Extract the week from timestamp
 
-        # Calcolare i limiti dei bins utilizzando logaritmi (log base 10)
-        bins = np.logspace(np.log10(bin_start), np.log10(bin_end), num=20)
+            # Group by 'page_id' and 'week' to count unique users
+            weekly_unique_users = df.groupby(['page_id', 'week'])['user_id'].nunique().reset_index()
+            weekly_unique_users.rename(columns={'user_id': 'unique_users_count'}, inplace=True)
+            weekly_unique_users = weekly_unique_users.sort_values(by=['page_id', 'week'])
+            
+            # Apply a moving average for smoothing
+            weekly_unique_users['smoothed_users_count'] = (
+                weekly_unique_users.groupby('page_id')['unique_users_count']
+                .rolling(window=time_window, min_periods=1)
+                .mean().reset_index(level=0, drop=True)
+            )
 
-        # Aggiunta di una colonna per il bin in cui si trova ogni valore
-        weekly_unique_users['binned'] = pd.cut(weekly_unique_users['smoothed_users_count'], bins, right=False)
+            # Filter out entries with outreach lower than the threshold
+            weekly_unique_users = weekly_unique_users[weekly_unique_users['unique_users_count'] > ignore_under]
 
-        # Raggruppiamo per 'post_id' e 'page_id' e otteniamo il timestamp minimo per ogni gruppo
-        interactions = df.groupby(['user_id', 'post_id', 'page_id'])['timestamp'].agg(['min', 'count']).reset_index()
-        # Convertiamo 'timestamp' in formato datetime
-        interactions['timestamp'] = pd.to_datetime(interactions['min'])
+            # Create logarithmic bins based on user count
+            bins = pd.qcut(weekly_unique_users['unique_users_count'], 
+                           q=weekly_unique_users['unique_users_count'].sum() // group_size, 
+                           retbins=True, duplicates='drop')[1]
+            weekly_unique_users['binned'] = pd.cut(weekly_unique_users['smoothed_users_count'], bins, right=False)
 
-        # Creiamo una colonna 'week' che rappresenta la settimana del 'timestamp'
-        interactions['week'] = interactions['timestamp'].dt.to_period('d')
+            # Group by 'user_id', 'post_id', 'page_id' and calculate interaction counts
+            interactions = df.groupby(['user_id', 'post_id', 'page_id'])['timestamp'].agg(['min', 'count']).reset_index()
+            interactions['timestamp'] = pd.to_datetime(interactions['min'])
+            interactions['week'] = interactions['timestamp'].dt.to_period('W')
 
-        # Impostiamo un limite per i commenti (se ci sono più di 5 commenti, li limitamo a 5)
-        interactions['count'] = interactions['count'].apply(lambda x: 20 if x > 20 else x)
-        # Esegui la fusione tra i due DataFrame
-        interactions = interactions.merge(weekly_unique_users[['page_id', 'week', 'binned', 'smoothed_users_count']], on=['page_id', 'week'])
+            # Apply correction for interaction counts
+            interactions['count'] = interactions['count'].apply(lambda x: min(x, correction))
 
-        # Conta il numero di righe per ogni valore della colonna 'binned'
-        binned_counts = interactions['binned'].value_counts()
+            # Merge interactions with weekly unique users data
+            interactions = interactions.merge(weekly_unique_users[['page_id', 'week', 'binned', 'smoothed_users_count']], on=['page_id', 'week'])
 
-        # Seleziona i valori di 'binned' che hanno 100 o più righe
-        valid_binned = binned_counts[binned_counts >= 200].index
+            # Calculate the probability distribution of comment counts for each post
+            prob_dist = interactions.groupby(['binned'])['count'].value_counts(normalize=True)
 
-        # Filtra il DataFrame per tenere solo le righe con 'binned' valido
-        interactions = interactions[interactions['binned'].isin(valid_binned)]
-        # Calcoliamo la distribuzione di probabilità dei commenti per ogni post
-        prob_dist = interactions.groupby(['binned'])['count'].value_counts(normalize=True)
+            # Calculate localization or alpha parameter
+            if type == '_alpha':
+                localization_results = prob_dist.groupby(['binned']).apply(lambda x: calculate_alpha_parameter(x.values)).reset_index(name='localization_parameter')
+            else:
+                localization_results = prob_dist.groupby(['binned']).apply(lambda x: calculate_localization_parameter(x.values)).reset_index(name='localization_parameter')
 
-        # Calcoliamo il parametro di localizzazione per ogni post_id
-        localization_results = prob_dist.groupby(['binned']).apply(lambda x: calculate_localization_parameter(x.values)).reset_index(name='localization_parameter')
+            # Save the results to CSV
+            localization_results.to_csv(output_path)
 
-        # Mostriamo il risultato del merge
-        localization_results.to_csv(root + f'PAPER/output/4_section/5_size_effect_{platform}.csv')
+        # Load the preprocessed data
+        merged_df = pd.read_csv(root + f'PAPER/output/4_section/5_size_effect_{platform+type}.csv')
 
 
-    # Carica i dati
-    merged_df = pd.read_csv(root + f'PAPER/output/4_section/5_size_effect_{platform}.csv')
+        color ='grey'# palette[platform]
 
-    # Definisci il colore dalla palette
-    color = palette[platform]
+        # Estrai e arrotonda la colonna 'binned_lower'
+        merged_df['binned_lower'] = merged_df['binned'].apply(lambda x: float(x.split(',')[0][1:])).round()
 
-    # Estrai e arrotonda la colonna 'binned_lower'
-    merged_df['binned_lower'] = merged_df['binned'].apply(lambda x: float(x.split(',')[0][1:])).round()
+        # Filtra righe con valori NaN o Inf
+        merged_df = merged_df.dropna(subset=['binned_lower', 'localization_parameter'])
+        merged_df = merged_df[np.isfinite(merged_df['localization_parameter'])]
 
-    # Filtra righe con valori NaN o Inf
-    merged_df = merged_df.dropna(subset=['binned_lower', 'localization_parameter'])
-    merged_df = merged_df[np.isfinite(merged_df['localization_parameter'])]
+        # Dati per l'interpolazione
+        x = merged_df['binned_lower']
+        y = merged_df['localization_parameter']
 
-    # Dati per l'interpolazione
-    x = merged_df['binned_lower']
-    y = merged_df['localization_parameter']
+        # Assicurati che x e y siano numerici
+        x = pd.to_numeric(x, errors='coerce')
+        y = pd.to_numeric(y, errors='coerce')
 
-    # Assicurati che x e y siano numerici
-    x = pd.to_numeric(x, errors='coerce')
-    y = pd.to_numeric(y, errors='coerce')
+        # Rimuovi righe non valide
+        valid_idx = (~x.isna()) & (x > 0) & (~y.isna())
+        x = x[valid_idx]
+        y = y[valid_idx]
 
-    # Rimuovi righe non valide
-    valid_idx = (~x.isna()) & (x > 0) & (~y.isna())
-    x = x[valid_idx]
-    y = y[valid_idx]
+        # Applica logaritmo a x
+        log_x = np.log(x)
 
-    # Applicazione della scala logaritmica per interpolazione
-    log_x = np.log(x)
+        # Stima la retta di regressione tra y e log(x)
+        slope, intercept, r_value, p_value, std_err = stats.linregress(log_x, y)
 
-    # Creazione della spline cubica su scala logaritmica
-    spl = make_interp_spline(log_x, y, k=3)
+        # Calcola R^2
+        r2 = r_value ** 2
 
-    # Genera una curva smussata
-    log_x_smooth = np.linspace(log_x.min(), log_x.max(), 500)
-    y_smooth = spl(log_x_smooth)
+        # Calcola l'intervallo di confidenza al 95% per la pendenza (slope) e l'intercetta (intercept)
+        n = len(x)  # numero di dati validi
+        t_value = stats.t.ppf(0.975, df=n-2)  # valore t per il 95% di intervallo di confidenza
+        slope_ci = t_value * std_err  # intervallo di confidenza per la pendenza
+        intercept_ci = t_value * std_err  # intervallo di confidenza per l'intercetta
 
-    # Converte i valori di x_smooth dalla scala logaritmica a quella lineare
-    x_smooth = np.exp(log_x_smooth)
+        # Creazione del grafico
+        plt.figure(figsize=(d1, d2))
 
-    # Creazione del grafico
-    plt.figure(figsize=(d1, d2))
+        # Punti originali
+        plt.scatter(x, y, color=color, zorder=5, alpha=0.5, edgecolors=palette[platform])
 
-    # Linea smussata
-    plt.plot(x_smooth, y_smooth, color=color, label='Smoothed line', linewidth=2)
+        # Aggiungi la retta di regressione
+        plt.plot(x, slope * log_x + intercept, color='grey', label=f'Fit: y = {slope:.2f} * log(x) + {intercept:.2f}', zorder=10)
 
-    # Punti originali
-    plt.scatter(x, y, color=color, zorder=5)
+        # Aggiungi le bande di confidenza per la pendenza e l'intercetta
+        plt.fill_between(x, slope * log_x + intercept - slope_ci, slope * log_x + intercept + slope_ci, color=palette[platform], alpha=0.2)
 
-    # Etichette degli assi e titolo
-    plt.xlabel('Page outreach', fontsize=xl)
-    plt.ylabel('Localization', fontsize=xl)
-    plt.title(str(platform.capitalize()), fontsize=T)
-    plt.tick_params(axis='both', which='major', labelsize=t)
+        plt.xlabel('Page outreach', fontsize=xl)
+        if type == '_alpha':
+            plt.ylabel('Probability of 1 comment', fontsize=xl)
+        else:
+            plt.ylabel('Localization', fontsize=xl)
+        plt.title(f'{platform.capitalize()} (R² = {r2:.2f})', fontsize=T)  # Include R² in the title
+        plt.tick_params(axis='both', which='major', labelsize=t)
 
-    # Altre impostazioni
-    plt.tight_layout()
-    plt.ylim(1, 1.25)
-    plt.xscale('log')
+        plt.legend()
+        plt.tight_layout()
+        if platform in ['twitter','facebook']:
+            plt.xscale('log')
 
-    # Salva e mostra il grafico
-    plt.savefig(f"{root}PAPER/output/4_section/5_size_effect_{platform}.png")
-    plt.show()
+        plt.savefig(f"{root}PAPER/output/4_section/5_size_effect_{platform+type}.png")
+        plt.show()

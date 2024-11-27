@@ -68,3 +68,9 @@ def calculate_localization_parameter(phi):
         return np.nan  
     L = numerator / denominator
     return L
+
+def calculate_alpha_parameter(phi):
+    if sum(phi)==1:
+        return phi[0]
+    else:
+        return None

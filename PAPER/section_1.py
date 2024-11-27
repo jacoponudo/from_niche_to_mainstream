@@ -30,9 +30,11 @@ for platform in tqdm(platforms):
     # Plotting
     unique_users_per_post = pd.read_csv(output_path)
     distribution = unique_users_per_post['unique_users_count'].value_counts().sort_index()
+    percentile_90 = np.percentile(unique_users_per_post['unique_users_count'], 90)
+    print(f"Il 90° percentile : {platform}-{percentile_90}")
 
     plt.figure(figsize=(d1, d1))
-    plt.scatter(distribution.index, distribution.values, color=palette[platform], alpha=0.5)
+    plt.scatter(distribution.index, distribution.values, color=palette[platform], alpha=0.5,s=100)
     plt.xscale('log')
     plt.yscale('log')
     plt.xlim(1, 10**5)
@@ -182,14 +184,16 @@ for platform in tqdm(platforms):
         balanced_result = result.groupby('user_count_bin').apply(
             lambda x: x.sample(n=min(len(x), 1000), random_state=42) if len(x) > 0 else x
         ).reset_index(drop=True)
-        balanced_result = result#.groupby('user_count_bin').apply(lambda x: x.sample(n=100000,replace=True, random_state=42) if len(x) > 0 else x).reset_index(drop=True)
+        balanced_result = result.groupby('user_count_bin').apply(lambda x: x.sample(n=100000,replace=True, random_state=42) if len(x) > 0 else x).reset_index(drop=True)
 
         # Creazione dei sub-bins, dividendo ogni bin in 10 gruppi da 100
         balanced_result['subbin'] =balanced_result.groupby('user_count_bin').cumcount() // 500 + 1
 
         prob_dist = balanced_result.groupby(['user_count_bin','subbin'])['comment_count'].value_counts(normalize=True)
         localization_results = prob_dist.groupby(['user_count_bin','subbin']).apply(lambda x: calculate_localization_parameter(x.values)).reset_index(name='localization_parameter')
+        alpha_results = prob_dist.groupby(['user_count_bin','subbin']).apply(lambda x: calculate_alpha_parameter(x.values)).reset_index(name='localization_parameter')
         localization_results.to_csv(root + f'PAPER/output/1_section/4_dialogue_level_{platform}.csv')
+        alpha_results.to_csv(root + f'PAPER/output/1_section/4_dialogue_level_{platform}_alpha.csv')
 
     # Plotting
 
@@ -239,4 +243,47 @@ for platform in tqdm(platforms):
     plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}.png")
 
     print('Done for ' + platform + '!')
+    
+    localization_results = pd.read_csv(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}_alpha.csv")
 
+    median_values = localization_results.groupby('user_count_bin')['localization_parameter'].median().reset_index()
+    q1_values = localization_results.groupby('user_count_bin')['localization_parameter'].quantile(0.25).reset_index()
+    q3_values = localization_results.groupby('user_count_bin')['localization_parameter'].quantile(0.75).reset_index()
+
+    conf_interval = pd.merge(median_values, q1_values[['user_count_bin', 'localization_parameter']], on='user_count_bin', suffixes=('', '_Q1'))
+    conf_interval = pd.merge(conf_interval, q3_values[['user_count_bin', 'localization_parameter']], on='user_count_bin', suffixes=('', '_Q3'))
+
+    localization_results['bin_lower_bound'] = localization_results['user_count_bin'].str.extract(r'(\d+)').astype(float)
+
+    conf_interval = conf_interval.merge(localization_results[['user_count_bin', 'bin_lower_bound']].drop_duplicates(), on='user_count_bin')
+    conf_interval = conf_interval.sort_values(by='bin_lower_bound').reset_index(drop=True)
+
+    plt.figure(figsize=(d1, d2))
+
+    # Set x-axis labels
+    if 'user_count_bin' in locals() and 'user_count_bin' in localization_results.columns:
+        bin_intervals = localization_results['user_count_bin'].cat.categories
+        x_labels = [str(int(interval.left)) for interval in bin_intervals]
+    else:
+        x_labels = conf_interval['bin_lower_bound'].astype(int).astype(str).tolist()
+
+    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, fontsize=t)
+    plt.yticks(fontsize=t)
+
+    # Plotting
+    plt.fill_between(conf_interval['user_count_bin'], conf_interval['localization_parameter_Q1'], conf_interval['localization_parameter_Q3'], color=palette[platform], alpha=0.2, label='Confidence Band (IQR)')
+    plt.plot(conf_interval['user_count_bin'], conf_interval['localization_parameter'], marker='o', color=palette[platform], label='Median per Bin')
+
+    # Set labels and legend
+    plt.xlim(0, 11)
+    plt.ylim(0.35,1)
+
+    # Set tick parameters for both axes
+    plt.xlabel('Number of users', fontsize=xl)
+    plt.ylabel('Localization', fontsize=yl)
+    plt.title(str(platform.capitalize()), fontsize=T)
+
+    # Save and show the plot
+    plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}_alpha.png")
+
+    print('Done for ' + platform + '!')
