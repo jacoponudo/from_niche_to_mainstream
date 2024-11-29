@@ -49,9 +49,7 @@ for platform in tqdm(platforms):
             weekly_unique_users = weekly_unique_users[weekly_unique_users['unique_users_count'] > ignore_under]
 
             # Create logarithmic bins based on user count
-            bins = pd.qcut(weekly_unique_users['unique_users_count'], 
-                           q=weekly_unique_users['unique_users_count'].sum() // group_size, 
-                           retbins=True, duplicates='drop')[1]
+            bins = pd.qcut(weekly_unique_users['unique_users_count'], q=group_size, retbins=True, duplicates='drop')[1]
             weekly_unique_users['binned'] = pd.cut(weekly_unique_users['smoothed_users_count'], bins, right=False)
 
             # Group by 'user_id', 'post_id', 'page_id' and calculate interaction counts
