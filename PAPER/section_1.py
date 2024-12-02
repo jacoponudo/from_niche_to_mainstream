@@ -178,16 +178,14 @@ for platform in tqdm(platforms):
 
         bins = np.logspace(np.log10(bin_start), np.log10(bin_end), num=12)
         result['user_count_bin'] = pd.cut(result['user_count'], bins=bins, right=False)
-        valid_bins = result['user_count_bin'].value_counts()[result['user_count_bin'].value_counts() > 1000].index
+        valid_bins = result['user_count_bin'].value_counts()[result['user_count_bin'].value_counts() > 10000].index
         result = result[result['user_count_bin'].isin(valid_bins)]
         result['comment_count'] = result['comment_count'].apply(lambda x: 10 if x > 10 else x)
         balanced_result = result.groupby('user_count_bin').apply(
-            lambda x: x.sample(n=min(len(x), 1000), random_state=42) if len(x) > 0 else x
+            lambda x: x.sample(n=min(len(x), 10000), random_state=42) if len(x) > 0 else x
         ).reset_index(drop=True)
-        balanced_result = result.groupby('user_count_bin').apply(lambda x: x.sample(n=100000,replace=True, random_state=42) if len(x) > 0 else x).reset_index(drop=True)
-
         # Creazione dei sub-bins, dividendo ogni bin in 10 gruppi da 100
-        balanced_result['subbin'] =balanced_result.groupby('user_count_bin').cumcount() // 500 + 1
+        balanced_result['subbin'] =balanced_result.groupby('user_count_bin').cumcount() // 250 + 1
 
         prob_dist = balanced_result.groupby(['user_count_bin','subbin'])['comment_count'].value_counts(normalize=True)
         localization_results = prob_dist.groupby(['user_count_bin','subbin']).apply(lambda x: calculate_localization_parameter(x.values)).reset_index(name='localization_parameter')

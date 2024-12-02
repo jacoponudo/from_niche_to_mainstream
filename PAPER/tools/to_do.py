@@ -13,10 +13,16 @@ def calculate_percentile_lifetime(group, percentile):
     return duration
 
 # Funzione per calcolare il percentile specificato di lifetime e restituire un dataset
-def calculate_lifetime_percentile(data, percentile, output_path):
+def calculate_lifetime_percentile(data, percentile, output_path,sample=0):
     # Convertiamo i 'post_id' in stringhe
+
     data['post_id'] = data['post_id'].astype(str)
-    
+    # Selezioniamo 1.000 'post_id' unici
+    if sample!=0:
+        unique_post_ids = data['post_id'].drop_duplicates().sample(n=sample, random_state=42)
+
+        # Filtriamo i dati per includere solo le righe con i post_id selezionati
+        data = data[data['post_id'].isin(unique_post_ids)]
     # Rimuoviamo i valori NaN dalle colonne rilevanti
     data = data.dropna(subset=['timestamp'])
     
