@@ -8,7 +8,7 @@ columns_to_read= {
 
 standard_columns=['post_id','user_id','timestamp']
 
-
+root = '/home/jacoponudo/documents/size/' 
 import pandas as pd
 
 # Define column renaming rules for each platform

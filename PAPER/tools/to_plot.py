@@ -18,7 +18,7 @@ def extract_number(bin_string):
 d1=10
 d2=10
 
-t=14
-T=50
-xl=35
-yl=35
+t=35
+T=55
+xl=40
+yl=40

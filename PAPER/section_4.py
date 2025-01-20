@@ -8,8 +8,6 @@ from tools.to_read import *
 from tools.to_do import *
 from tools.to_plot import *
 
-# Define root path for saving results
-root = '/home/jacoponudo/Documents/Size_effects/'
 
 # Platform types and index categories
 platforms = ['reddit', 'usenet', 'voat', 'gab', 'facebook', 'twitter']
@@ -128,15 +126,15 @@ for platform in tqdm(platforms):
         # Aggiungi le bande di confidenza per la pendenza e l'intercetta
         plt.fill_between(x, slope * log_x + intercept - slope_ci, slope * log_x + intercept + slope_ci, color=palette[platform], alpha=0.2)
 
-        plt.xlabel('Page outreach', fontsize=xl)
+        plt.xlabel('Outreach Size', fontsize=xl)
         if type == '_alpha':
             plt.ylabel('Probability of 1 comment', fontsize=xl)
         else:
             plt.ylabel('Localization', fontsize=xl)
         plt.title(f'{platform.capitalize()} (R² = {r2:.2f})', fontsize=T)  # Include R² in the title
-        plt.tick_params(axis='both', which='major', labelsize=t)
+        plt.tick_params(axis='both', which='major', labelsize=t-2)
 
-        plt.legend()
+        plt.legend(fontsize=t-10)
         plt.tight_layout()
         if platform in ['twitter','facebook']:
             plt.xscale('log')

@@ -11,7 +11,7 @@ import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 import os
 
-root = '/home/jacoponudo/Documents/Size_effects/'
+root = '/home/jacoponudo/documents/size/'
 
 platforms = ['reddit', 'twitter', 'usenet', 'voat', 'facebook','gab']
 
@@ -53,29 +53,31 @@ for platform in tqdm(platforms):
     cmap = LinearSegmentedColormap.from_list("platform_to_white", ['white', platform_color], N=100)
 
     # Crea l'heatmap
-    sns.heatmap(density_matrix, cmap=cmap,
-                cbar_kws={'label': 'Density'},
+    ax=sns.heatmap(density_matrix, cmap=cmap,
+                cbar_kws={'label': ''},
                 xticklabels=range(2, max_k + 1, 2),
                 yticklabels=range(2, max_d + 1, 2))
-
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=22) 
     # Imposta i label degli assi con dimensioni maggiorate
     plt.xlabel("Thread prefix length (k)", fontsize=xl)
     plt.ylabel("Number of users (d)", fontsize=xl)
     plt.title(f"{platform.capitalize()}", fontsize=T)
 
     # Riduci il numero di etichette dell'asse x e y visualizzate e ingrandisci i tick
-    plt.xticks(ticks=np.arange(0, max_k // 2, step=5),
-            labels=[f"{i*2}" for i in range(0, max_k // 2, 5)], 
+    plt.xticks(ticks=np.arange(0, max_k // 2, step=20),  # Usa step maggiore per distanziare di più
+            labels=[f"{i*2}" for i in range(0, max_k // 2, 20)], 
             rotation=45, fontsize=t)
-    plt.yticks(ticks=np.arange(0, max_d // 2, step=5),
-            labels=[f"{i*2}" for i in range(0, max_d // 2, 5)], 
+    plt.yticks(ticks=np.arange(0, max_d // 2, step=20),  # Anche qui aumenta lo step
+            labels=[f"{i*2}" for i in range(0, max_d // 2, 20)], 
             fontsize=t)
 
     # Inverti l'asse y per mantenere la convenzione della heatmap
     plt.gca().invert_yaxis()
 
     # Salva e mostra il grafico
-    plt.savefig(f"/home/jacoponudo/Documents/Size_effects/PAPER/output/2_section/heatmap_{platform}.png")
+    plt.subplots_adjust( bottom=0.2, left=0.2, right=1.2, hspace=0.2, wspace=0.2)
+    plt.savefig(f"/home/jacoponudo/documents/size/PAPER/output/2_section/heatmap_{platform}.png")
     plt.show()
 
 plt.close()  # Close the plot to free up memory

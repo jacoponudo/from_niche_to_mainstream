@@ -14,7 +14,7 @@ for platform in tqdm(platforms):
     from matplotlib.colors import LinearSegmentedColormap
     import matplotlib.image as mpimg
 
-    root = '/home/jacoponudo/Documents/Size_effects/'
+    root = '/home/jacoponudo/documents/size/'
     data = pd.read_parquet(root + 'DATA/' + platform + '/' + platform + '_raw_data.parquet', columns=columns_to_read[platform])
     data.columns = standard_columns
     data['timestamp'] = pd.to_datetime(data['timestamp'])
@@ -32,9 +32,10 @@ for platform in tqdm(platforms):
     distribution = unique_users_per_post['unique_users_count'].value_counts().sort_index()
     percentile_90 = np.percentile(unique_users_per_post['unique_users_count'], 90)
     print(f"Il 90° percentile : {platform}-{percentile_90}")
-
+    xl=40
+    yl=40
     plt.figure(figsize=(d1, d1))
-    plt.scatter(distribution.index, distribution.values, color=palette[platform], alpha=0.5,s=100)
+    plt.scatter(distribution.index, distribution.values, color=palette[platform], alpha=0.3,s=160)
     plt.xscale('log')
     plt.yscale('log')
     plt.xlim(1, 10**5)
@@ -44,10 +45,12 @@ for platform in tqdm(platforms):
     plt.title(str(platform.capitalize()), fontsize=T)
     plt.grid(False)
     plt.tight_layout()
+    plt.subplots_adjust(left=0.15, right=0.9, bottom=-0.1) 
+    
 
     # Set tick parameters
     plt.tick_params(axis='both', which='major', labelsize=t)
-
+    plt.subplots_adjust( bottom=0.2, left=0.2,hspace=0.2, wspace=0.2)
     plt.savefig(root + 'PAPER/output/1_section/1_users_in_thread_{}.png'.format(platform))
 
     '''
@@ -167,6 +170,7 @@ for platform in tqdm(platforms):
     plt.savefig(plot_filename)
     plt.close()  # Close the plot to save memory
 '''
+    from tools.to_plot import *
     # 4. Level of dialogue
     output_path = root + f'PAPER/output/1_section/4_dialogue_level_{platform}.csv'
     if not os.path.exists(output_path):
@@ -218,7 +222,7 @@ for platform in tqdm(platforms):
     else:
         x_labels = conf_interval['bin_lower_bound'].astype(int).astype(str).tolist()
 
-    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, fontsize=t)
+    plt.xticks(ticks=range(len(x_labels)), labels=x_labels,fontsize=t-11,rotation=45)
     plt.yticks(fontsize=t)
 
     # Plotting
@@ -230,12 +234,13 @@ for platform in tqdm(platforms):
     plt.ylim(1, 1.15)
     if platform=='usenet':
         plt.ylim(1, 2.1)
-    plt.legend()
+    plt.legend(fontsize=t-10)
 
     # Set tick parameters for both axes
-    plt.xlabel('Number of users', fontsize=xl)
+    plt.xlabel('Crowd Size', fontsize=xl)
     plt.ylabel('Localization', fontsize=yl)
     plt.title(str(platform.capitalize()), fontsize=T)
+    plt.subplots_adjust( bottom=0.2, left=0.2,hspace=0.2, wspace=0.2)
 
     # Save and show the plot
     plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}.png")
@@ -265,7 +270,7 @@ for platform in tqdm(platforms):
     else:
         x_labels = conf_interval['bin_lower_bound'].astype(int).astype(str).tolist()
 
-    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, fontsize=t)
+    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, fontsize=t-12,rotation=45)
     plt.yticks(fontsize=t)
 
     # Plotting
@@ -280,7 +285,8 @@ for platform in tqdm(platforms):
     plt.xlabel('Number of users', fontsize=xl)
     plt.ylabel('Localization', fontsize=yl)
     plt.title(str(platform.capitalize()), fontsize=T)
-
+    plt.tight_layout()
+    plt.subplots_adjust( bottom=0.2, left=0.2,hspace=0.2, wspace=0.2)
     # Save and show the plot
     plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}_alpha.png")
 
