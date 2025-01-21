@@ -15,13 +15,13 @@ for platform in tqdm(platforms):
     import matplotlib.image as mpimg
 
     root = '/home/jacoponudo/documents/size/'
-    data = pd.read_parquet(root + 'DATA/' + platform + '/' + platform + '_raw_data.parquet', columns=columns_to_read[platform])
+    data = pd.read_parquet(root + 'data/' + platform + '/' + platform + '_raw_data.parquet', columns=columns_to_read[platform])
     data.columns = standard_columns
     data['timestamp'] = pd.to_datetime(data['timestamp'])
 
     # 1. Numero di utenti coinvolti in una conversazione
     
-    output_path = root + 'PAPER/output/1_section/1_users_in_thread_{}.csv'.format(platform)
+    output_path = root + 'src/output/1_section/1_users_in_thread_{}.csv'.format(platform)
     if not os.path.exists(output_path):
         unique_users_per_post = data.groupby('post_id')['user_id'].nunique().reset_index()
         unique_users_per_post.columns = ['post_id', 'unique_users_count']
@@ -172,7 +172,7 @@ for platform in tqdm(platforms):
 '''
     from tools.to_plot import *
     # 4. Level of dialogue
-    output_path = root + f'PAPER/output/1_section/4_dialogue_level_{platform}.csv'
+    output_path = root + f'src/output/1_section/4_dialogue_level_{platform}.csv'
     if not os.path.exists(output_path):
         grouped = data.groupby(['user_id', 'post_id']).size().reset_index(name='comment_count')
         user_count = data.groupby('post_id')['user_id'].nunique().reset_index(name='user_count')
@@ -199,7 +199,7 @@ for platform in tqdm(platforms):
 
     # Plotting
 
-    localization_results = pd.read_csv(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}.csv")
+    localization_results = pd.read_csv(f"{root}src/output/1_section/4_dialogue_level_{platform}.csv")
 
     median_values = localization_results.groupby('user_count_bin')['localization_parameter'].median().reset_index()
     q1_values = localization_results.groupby('user_count_bin')['localization_parameter'].quantile(0.25).reset_index()
@@ -243,11 +243,11 @@ for platform in tqdm(platforms):
     plt.subplots_adjust( bottom=0.2, left=0.2,hspace=0.2, wspace=0.2)
 
     # Save and show the plot
-    plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}.png")
+    plt.savefig(f"{root}src/output/1_section/4_dialogue_level_{platform}.png")
 
     print('Done for ' + platform + '!')
     
-    localization_results = pd.read_csv(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}_alpha.csv")
+    localization_results = pd.read_csv(f"{root}src/output/1_section/4_dialogue_level_{platform}_alpha.csv")
 
     median_values = localization_results.groupby('user_count_bin')['localization_parameter'].median().reset_index()
     q1_values = localization_results.groupby('user_count_bin')['localization_parameter'].quantile(0.25).reset_index()
@@ -289,6 +289,6 @@ for platform in tqdm(platforms):
     plt.subplots_adjust( bottom=0.2, left=0.2,hspace=0.2, wspace=0.2)
     plt.legend(fontsize=t-10)
     # Save and show the plot
-    plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}_alpha.png")
+    plt.savefig(f"{root}src/output/1_section/4_dialogue_level_{platform}_alpha.png")
 
     print('Done for ' + platform + '!')
