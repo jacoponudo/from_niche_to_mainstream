@@ -222,7 +222,7 @@ for platform in tqdm(platforms):
     else:
         x_labels = conf_interval['bin_lower_bound'].astype(int).astype(str).tolist()
 
-    plt.xticks(ticks=range(len(x_labels)), labels=x_labels,fontsize=t-11,rotation=45)
+    plt.xticks(ticks=range(len(x_labels)), labels=x_labels,fontsize=t-6,rotation=45)
     plt.yticks(fontsize=t)
 
     # Plotting
@@ -238,7 +238,7 @@ for platform in tqdm(platforms):
 
     # Set tick parameters for both axes
     plt.xlabel('Crowd Size', fontsize=xl)
-    plt.ylabel('Localization', fontsize=yl)
+    plt.ylabel(r'$L$', fontsize=yl)
     plt.title(str(platform.capitalize()), fontsize=T)
     plt.subplots_adjust( bottom=0.2, left=0.2,hspace=0.2, wspace=0.2)
 
@@ -287,6 +287,7 @@ for platform in tqdm(platforms):
     plt.title(str(platform.capitalize()), fontsize=T)
     plt.tight_layout()
     plt.subplots_adjust( bottom=0.2, left=0.2,hspace=0.2, wspace=0.2)
+    plt.legend(fontsize=t-10)
     # Save and show the plot
     plt.savefig(f"{root}PAPER/output/1_section/4_dialogue_level_{platform}_alpha.png")
 

@@ -130,7 +130,7 @@ for platform in tqdm(platforms):
         if type == '_alpha':
             plt.ylabel(r'$\alpha$', fontsize=yl)
         else:
-            plt.ylabel('Localization', fontsize=xl)
+            plt.ylabel(r'$L$', fontsize=xl)
         plt.title(f'{platform.capitalize()} (R² = {r2:.2f})', fontsize=T)  # Include R² in the title
         plt.tick_params(axis='both', which='major', labelsize=t-2)
 
