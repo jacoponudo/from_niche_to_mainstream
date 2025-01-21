@@ -282,8 +282,8 @@ for platform in tqdm(platforms):
     plt.ylim(0.35,1)
 
     # Set tick parameters for both axes
-    plt.xlabel('Number of users', fontsize=xl)
-    plt.ylabel('Localization', fontsize=yl)
+    plt.xlabel('Crowd Size', fontsize=xl)
+    plt.ylabel(r'$\alpha$', fontsize=yl)
     plt.title(str(platform.capitalize()), fontsize=T)
     plt.tight_layout()
     plt.subplots_adjust( bottom=0.2, left=0.2,hspace=0.2, wspace=0.2)

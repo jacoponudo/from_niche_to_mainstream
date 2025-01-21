@@ -128,7 +128,7 @@ for platform in tqdm(platforms):
 
         plt.xlabel('Outreach Size', fontsize=xl)
         if type == '_alpha':
-            plt.ylabel('Probability of 1 comment', fontsize=xl)
+            plt.ylabel(r'$\alpha$', fontsize=yl)
         else:
             plt.ylabel('Localization', fontsize=xl)
         plt.title(f'{platform.capitalize()} (R² = {r2:.2f})', fontsize=T)  # Include R² in the title
