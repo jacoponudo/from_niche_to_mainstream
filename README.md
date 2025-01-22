@@ -33,4 +33,4 @@ If you use this repository in your research, please cite:
 Nudo, J., Cinelli, M., Baronchelli, A., & Quattrociocchi, W. (2025). From Niche to Mainstream: Community Size and Engagement in Social Media Conversations. arXiv:2501.12076v1.
 Contact
 
-For any questions or issues, please contact Jacopo Nudo at jacopo.nudo@uniroma1.it
+For any questions or issues, please contact me at jacopo.nudo@uniroma1.it
