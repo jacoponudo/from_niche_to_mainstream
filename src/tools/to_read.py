@@ -8,7 +8,7 @@ columns_to_read= {
 
 standard_columns=['post_id','user_id','timestamp']
 
-root = '/home/jacoponudo/documents/size/' 
+root = '/home/jacoponudo/documents/from_niche_to_mainstream/' 
 import pandas as pd
 
 # Define column renaming rules for each platform
@@ -55,9 +55,9 @@ column_renaming = {
 # Function to read and rename columns based on platform
 def read_and_rename(platform, root):
     if platform=='facebook':
-        df = pd.read_parquet(root + 'DATA/' + platform + '/' + platform + '_raw_data.parquet')
+        df = pd.read_parquet(root + 'data/' + platform + '/' + platform + '_raw_data.parquet')
     else:
-        df = pd.read_parquet(root + 'DATA/' + platform + '/' + platform + '_raw_data.parquet', columns=list(column_renaming[platform].keys()))
+        df = pd.read_parquet(root + 'data/' + platform + '/' + platform + '_raw_data.parquet', columns=list(column_renaming[platform].keys()))
     
     # Rename the columns according to the dictionary
     df.rename(columns=column_renaming[platform], inplace=True)

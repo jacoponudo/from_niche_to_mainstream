@@ -22,7 +22,7 @@ correction = 5  # Maximum value of interaction count for corrections
 # Iterate over the different platform types and index types
 for platform in tqdm(platforms):
     for type in types:
-        output_path = f'{root}PAPER/output/4_section/5_size_effect_{platform}{type}.csv'
+        output_path = f'{root}src/output/4_section/5_size_effect_{platform}{type}.csv'
         
         # If the output file does not exist, process and generate data
         if not os.path.exists(output_path):
@@ -74,7 +74,7 @@ for platform in tqdm(platforms):
             localization_results.to_csv(output_path)
 
         # Load the preprocessed data
-        merged_df = pd.read_csv(root + f'PAPER/output/4_section/5_size_effect_{platform+type}.csv')
+        merged_df = pd.read_csv(root + f'src/output/4_section/5_size_effect_{platform+type}.csv')
 
 
         color ='grey'# palette[platform]
@@ -139,5 +139,5 @@ for platform in tqdm(platforms):
         if platform in ['twitter','facebook']:
             plt.xscale('log')
 
-        plt.savefig(f"{root}PAPER/output/4_section/5_size_effect_{platform+type}.png")
+        plt.savefig(f"{root}src/output/4_section/5_size_effect_{platform+type}.png")
         plt.show()

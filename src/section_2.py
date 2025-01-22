@@ -11,7 +11,7 @@ import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 import os
 
-root = '/home/jacoponudo/documents/size/'
+root = '/home/jacoponudo/documents/from_niche_to_mainstream/'
 
 platforms = ['reddit', 'twitter', 'usenet', 'voat', 'facebook','gab']
 
@@ -20,9 +20,9 @@ max_d = 200
 sample_size=1000000
 
 for platform in tqdm(platforms):
-    output_path = root + f'PAPER/output/2_section/density_matrix_{platform}.csv'
+    output_path = root + f'src/output/2_section/density_matrix_{platform}.csv'
     if not os.path.exists(output_path):
-        data = pd.read_parquet(root + 'DATA/' + platform + '/' + platform + '_raw_data.parquet', columns=columns_to_read[platform])
+        data = pd.read_parquet(root + 'data/' + platform + '/' + platform + '_raw_data.parquet', columns=columns_to_read[platform])
         data.columns = standard_columns
         data['timestamp'] = pd.to_datetime(data['timestamp'])
         df = data.sort_values(by=['post_id', 'timestamp'])
@@ -46,8 +46,8 @@ for platform in tqdm(platforms):
         density_df = pd.DataFrame(density_matrix, 
                                 columns=[f"k={i}" for i in range(2, max_k + 1, 2)],
                                 index=[f"d={i}" for i in range(2, max_d + 1, 2)])
-        density_df.to_csv(root + f'PAPER/output/2_section/density_matrix_{platform}.csv', index=True)
-    density_matrix = pd.read_csv(root + f'PAPER/output/2_section/density_matrix_{platform}.csv', index_col=0)
+        density_df.to_csv(root + f'src/output/2_section/density_matrix_{platform}.csv', index=True)
+    density_matrix = pd.read_csv(root + f'src/output/2_section/density_matrix_{platform}.csv', index_col=0)
     plt.figure(figsize=(d1, d2))
     platform_color = palette[platform]
     cmap = LinearSegmentedColormap.from_list("platform_to_white", ['white', platform_color], N=100)
@@ -77,7 +77,7 @@ for platform in tqdm(platforms):
 
     # Salva e mostra il grafico
     plt.subplots_adjust( bottom=0.2, left=0.2, right=1.2, hspace=0.2, wspace=0.2)
-    plt.savefig(f"/home/jacoponudo/documents/size/PAPER/output/2_section/heatmap_{platform}.png")
+    plt.savefig(f"/home/jacoponudo/documents/from_niche_to_mainstream/src/output/2_section/heatmap_{platform}.png")
     plt.show()
 
 plt.close()  # Close the plot to free up memory
