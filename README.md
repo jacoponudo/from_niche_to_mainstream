@@ -1,7 +1,6 @@
 # From Niche to Mainstream
 
-<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <img src="https://github.com/user-attachments/assets/401b73d6-268d-4952-8a3b-304b92c21c28" alt="Agents Tribes" width="200" />
+
 </div>
 
 This repository contains the code and data used for the analysis and visualizations presented in the study "From Niche to Mainstream: Community Size and Engagement in Social Media Conversations". The research explores the interplay between platform design, community size, and user engagement across six social media platforms over a 33-year period.
